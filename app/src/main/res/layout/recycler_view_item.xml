@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@color/white"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
@@ -9,7 +10,7 @@
         android:id="@+id/album_artwork_iv"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        tools:src="@drawable/placeholder"
+        android:src="@drawable/placeholder"
         android:layout_gravity="center"
         android:layout_margin="10dp" />
 
@@ -24,7 +25,9 @@
             android:id="@+id/title_name_tv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:lines="1"
+            android:ellipsize="end"
+            android:textSize="18sp"
             tools:text="Hey Mama" />
 
         <TextView

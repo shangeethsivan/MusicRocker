@@ -3,6 +3,7 @@ package com.shangeeth.musicrocker.adapters;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
@@ -37,7 +38,7 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Log.e(TAG, "onCreateViewHolder: "+viewType);
+        Log.e(TAG, "onCreateViewHolder: " + viewType);
 
         View lView = mLayoutInflater.inflate(R.layout.recycler_view_item, parent, false);
 
@@ -48,17 +49,19 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     public void onBindViewHolder(MyViewHolder holder, int position) {
         mCursor.moveToPosition(position);
 
-        Uri lUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media._ID)));
-        Picasso.with(mContext).load(lUri).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+        Uri lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
 
-        String lTrackName = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+        Picasso.with(mContext).load(lUri).fit().placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+
+        String lTrackName = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
         if (lTrackName != null)
             holder.trackNameTV.setText(lTrackName.trim());
 
         String lAlbumName = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
         if (lAlbumName != null)
             holder.albumAndArtistDetailsTV.setText(lAlbumName.trim());
-        Log.e(TAG, "onBindViewHolder: " + position + lTrackName+":"+lAlbumName);
+
+        Log.e(TAG, "onBindViewHolder: " + position + lTrackName + ":" + lAlbumName);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.shangeeth.musicrocker;
+package com.shangeeth.musicrocker.ui;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.adapters.MyRecViewAdapter;
 
 public class MainActivity extends AppCompatActivity {
@@ -72,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
             ContentResolver lContentResolver = getContentResolver();
             mCursor = lContentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DISPLAY_NAME},
-                    null, null, null);
+                    new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM_ID},
+                    null, null, MediaStore.Audio.Media.TITLE+" ASC");
             return null;
         }
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MusicRocker</string>
+    <string name="music_uri">uri</string>
 </resources>

@@ -15,9 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.shangeeth.musicrocker.R;
+import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by user on 03/05/17.
@@ -25,15 +29,15 @@ import org.w3c.dom.Text;
 
 public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyViewHolder> {
 
-    Cursor mCursor;
+    ArrayList<SongDetailsJDO> mSongDetailsJDOs;
     LayoutInflater mLayoutInflater;
     Context mContext;
     private static final String TAG = "MyRecViewAdapter";
 
-    public MyRecViewAdapter(Context context, Cursor pCursor) {
+    public MyRecViewAdapter(Context context, ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
         mContext = context;
         mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mCursor = pCursor;
+        mSongDetailsJDOs = pSongDetailsJDOs;
     }
 
     @Override
@@ -47,26 +51,34 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        mCursor.moveToPosition(position);
 
-        Uri lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
+        Uri lUri = null;
+        if (mSongDetailsJDOs.get(position).getAlbumId() != null)
+            lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
 
         Picasso.with(mContext).load(lUri).fit().placeholder(R.drawable.placeholder).into(holder.albumImageIV);
 
-        String lTrackName = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+        String lTrackName = mSongDetailsJDOs.get(position).getTitle();
         if (lTrackName != null)
             holder.trackNameTV.setText(lTrackName.trim());
+        else
+            holder.trackNameTV.setText("<Unknown>");
 
-        String lAlbumName = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+        String lAlbumName = mSongDetailsJDOs.get(position).getAlbumName();
         if (lAlbumName != null)
             holder.albumAndArtistDetailsTV.setText(lAlbumName.trim());
+        else
+            holder.albumAndArtistDetailsTV.setText("<Unknown>");
 
         Log.e(TAG, "onBindViewHolder: " + position + lTrackName + ":" + lAlbumName);
     }
 
     @Override
     public int getItemCount() {
-        return mCursor.getCount();
+        if (mSongDetailsJDOs != null)
+            return mSongDetailsJDOs.size();
+        else
+            return 0;
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {
@@ -81,5 +93,14 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
             trackNameTV = (TextView) itemView.findViewById(R.id.title_name_tv);
             albumAndArtistDetailsTV = (TextView) itemView.findViewById(R.id.artist_author_name_tv);
         }
+    }
+
+    public void swapData(ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
+        mSongDetailsJDOs = pSongDetailsJDOs;
+        notifyDataSetChanged();
+    }
+
+    public List<SongDetailsJDO> getData() {
+        return mSongDetailsJDOs;
     }
 }

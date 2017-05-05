@@ -33,6 +33,8 @@
         <TextView
             android:id="@+id/artist_author_name_tv"
             android:layout_width="match_parent"
+            android:lines="1"
+            android:ellipsize="end"
             android:layout_height="wrap_content"
             tools:text="David Guetta"
             android:textSize="16sp" />

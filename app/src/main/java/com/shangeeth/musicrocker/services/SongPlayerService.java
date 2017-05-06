@@ -166,7 +166,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     }
 
     public void seekSong(int position){
-
+        mMediaPlayer.seekTo(position);
     }
 
     public class MyBinder extends Binder {

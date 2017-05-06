@@ -127,6 +127,29 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            boolean mFromUser = false;
+            int mProgress = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mFromUser = fromUser;
+                mProgress = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (mFromUser)
+                    mSongPlayerService.seekSong(mProgress);
+            }
+        });
+
     }
 
 

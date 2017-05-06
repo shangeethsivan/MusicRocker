@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">MusicRocker</string>
     <string name="music_uri">uri</string>
+
     <string name="song_list">song_list</string>
     <string name="position">position</string>
+    <string name="current_position_for_seek">current_position</string>
     <string name="current_song_details">current_song_details</string>
+
     <string name="is_new_song">is_new_song</string>
+    <string name="total_song_duration">total_song_duration</string>
 </resources>

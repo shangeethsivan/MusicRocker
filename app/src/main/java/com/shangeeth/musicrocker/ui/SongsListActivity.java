@@ -84,7 +84,7 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         Log.e(TAG, "onCreateLoader: ");
         return new CursorLoader(this, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM,
-                        MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ALBUM_ID},
+                        MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.DURATION},
                 null, null, MediaStore.Audio.Media.TITLE + " ASC");
     }
 
@@ -106,7 +106,10 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         if (pCursor.moveToFirst()) {
             do {
                 mSongDetailsJDOs.add(new SongDetailsJDO(pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
-                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)), pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)), pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media._ID))));
+                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)),
+                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)),
+                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media._ID)),
+                        pCursor.getInt(pCursor.getColumnIndex(MediaStore.Audio.Media.DURATION))));
 
             } while (pCursor.moveToNext());
         }

@@ -1,301 +1,212 @@
 package com.shangeeth.musicrocker.ui;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.provider.MediaStore;
+import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.shangeeth.musicrocker.services.SongPlayerService;
+import com.shangeeth.musicrocker.util.ConverterUtil;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-public class PlayerActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
+public class PlayerActivity extends AppCompatActivity {
 
-    private TextView mTitleTV;
-    private TextView mAlbumNameTV;
-    private TextView mStartTimeTv;
-    private TextView mEndTimeTv;
+    protected TextView mTitleTv;
+    protected TextView mAlbumNameTv;
+    protected TextView mStartTimeTv;
+    protected TextView mEndTimeTv;
 
-    private SeekBar mSeekBar;
+    protected ImageView mAlbumIv;
+    protected ImageView mPreviousIv;
+    protected ImageView mPlayOrPauseIv;
+    protected ImageView mNextIv;
 
-    private ImageView mPreviousSongIv;
-    private ImageView mPlayOrPauseIv;
-    private ImageView mNextIv;
-    private ImageView mAlbumIV;
+    protected SeekBar mSeekBar;
+
+    private static final String TAG = "PlayerActivity";
+    public static final String RECEIVER_FILTER = "com.shangeeth.musicrocker.ui.PlayerReceiver";
 
     private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
-
-    private int mCurrentSongPositionInList;
-
-    private MediaPlayer mMediaPlayer;
+    private int mCurrentSongPositionInList = 0;
+    private BroadcastReceiver mBroadcastReceiver;
+    private Intent mIntent;
 
     private boolean isSongPlaying = false;
 
-    private static final String TAG = "PlayerActivity";
-
-    private Handler mHandler;
+    public SongPlayerService mSongPlayerService;
+    private ServiceConnection mServiceConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mTitleTV = (TextView) findViewById(R.id.title_tv);
-        mAlbumNameTV = (TextView) findViewById(R.id.album_name_tv);
+        mTitleTv = (TextView) findViewById(R.id.title_tv);
+        mAlbumNameTv = (TextView) findViewById(R.id.album_name_tv);
         mStartTimeTv = (TextView) findViewById(R.id.start_time_tv);
         mEndTimeTv = (TextView) findViewById(R.id.end_time_tv);
 
-
-        mPreviousSongIv = (ImageView) findViewById(R.id.previous_iv);
+        mAlbumIv = (ImageView) findViewById(R.id.album_iv);
+        mPreviousIv = (ImageView) findViewById(R.id.previous_iv);
         mPlayOrPauseIv = (ImageView) findViewById(R.id.play_or_pause_iv);
         mNextIv = (ImageView) findViewById(R.id.next_iv);
-        mAlbumIV = (ImageView) findViewById(R.id.album_iv);
 
         mSeekBar = (SeekBar) findViewById(R.id.seek_bar);
 
         mSongDetailsJDOs = new ArrayList<>();
 
+        if (getIntent().getExtras() != null) {
+
+            Intent lIntent = getIntent();
+
+            mSongDetailsJDOs = (ArrayList<SongDetailsJDO>) lIntent.getSerializableExtra(getString(R.string.song_list));
+            mCurrentSongPositionInList = lIntent.getIntExtra(getString(R.string.position), 0);
+
+        } else {
+            Log.e(TAG, "onCreate: No Data loaded");
+        }
+
+        initServiceCommunication();
+        initReceivers();
+        //Initially song will be playing set the play button active
+        isSongPlaying = true;
+        mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
+
         setOnClickListeners();
 
 
-        mMediaPlayer = new MediaPlayer();
-        mHandler = new Handler();
-
-        if (mMediaPlayer.isPlaying()) {
-            mMediaPlayer.stop();
-            mMediaPlayer.reset();
-        }
-
-        mMediaPlayer.setOnCompletionListener(this);
-
-
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-            boolean mFromUser = false;
-            int mProgress = 0;
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mFromUser = fromUser;
-                mProgress = progress;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                if (mFromUser)
-                    mMediaPlayer.seekTo(mProgress);
-            }
-        });
-
     }
 
-    public void trackProgress() {
+    private void setOnClickListeners() {
 
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mMediaPlayer != null) {
-                    int mCurrentPosition = mMediaPlayer.getCurrentPosition();
-                    mSeekBar.setProgress(mCurrentPosition);
-
-                    int lCurrentDuration = mMediaPlayer.getCurrentPosition();
-                    //second Conversion
-
-                    lCurrentDuration = lCurrentDuration / 1000;
-
-                    int lSeconds = lCurrentDuration % 60;
-                    int lMinutes = lCurrentDuration / 60;
-
-                    mStartTimeTv.setText(String.format("%02d:%02d", lMinutes, lSeconds));
-                }
-                mHandler.postDelayed(this, 1000);
-            }
-        });
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mMediaPlayer != null) {
-            mHandler.removeCallbacksAndMessages(null);
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-        }
-    }
-
-    private void loadSongDetails() {
-
-        Log.e(TAG, "onCreate: " + mSongDetailsJDOs.get(mCurrentSongPositionInList) + " " + mCurrentSongPositionInList);
-        Uri lUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(mSongDetailsJDOs.get(mCurrentSongPositionInList).getSongId()));
-        Log.e(TAG, "loadSongDetails: "+lUri );
-        try {
-            mMediaPlayer.setDataSource(this, lUri);
-            mMediaPlayer.prepare();
-            mSeekBar.setMax(mMediaPlayer.getDuration());
-            trackProgress();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Song not found in device", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        mTitleTV.setText(mSongDetailsJDOs.get(mCurrentSongPositionInList).getTitle());
-
-        if (mSongDetailsJDOs.get(mCurrentSongPositionInList).getAlbumName() != null)
-            mAlbumNameTV.setText(mSongDetailsJDOs.get(mCurrentSongPositionInList).getAlbumName());
-        else
-            mAlbumNameTV.setText("<unknown>");
-
-        if (mSongDetailsJDOs.get(mCurrentSongPositionInList).getAlbumId() != null) {
-
-            Uri lAlbumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(mCurrentSongPositionInList).getAlbumId()));
-            Picasso.with(this).load(lAlbumArtUri).centerCrop().resize(800, 800).placeholder(R.drawable.placeholder).into(mAlbumIV);
-
-        } else
-            mAlbumIV.setImageResource(R.drawable.placeholder);
-
-        mStartTimeTv.setText("00:00");
-
-        int lSongDuration = mMediaPlayer.getDuration();
-
-        //to seconds Conversion
-        lSongDuration = lSongDuration / 1000;
-
-        int lSeconds = lSongDuration % 60;
-        int lMinutes = lSongDuration / 60;
-
-        mEndTimeTv.setText(String.format("%02d:%02d", lMinutes, lSeconds));
-
-    }
-
-
-    public void setOnClickListeners() {
-
-        mPreviousSongIv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                isSongPlaying = false;
-                mMediaPlayer.reset();
-
-                if (mCurrentSongPositionInList - 1 >= 0) {
-
-                    mCurrentSongPositionInList = mCurrentSongPositionInList - 1;
-                    loadSongDetails();
-                    playOrPauseSong();
-
-                } else {
-                    loadSongDetails();
-                    mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
-                    Toast.makeText(PlayerActivity.this, "No other song is in the list click next to go to next song", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-
-        });
         mPlayOrPauseIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                playOrPauseSong();
-                startService(new Intent(PlayerActivity.this, SongPlayerService.class));
+                if (isSongPlaying) {
+                    isSongPlaying = false;
+                    mSongPlayerService.playOrPauseSong();
+                    mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
+                } else {
+                    isSongPlaying = true;
+                    mSongPlayerService.playOrPauseSong();
+                    mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
+                }
             }
         });
 
         mNextIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mSongPlayerService.playNextSong();
+            }
+        });
 
-                isSongPlaying = false;
-                mMediaPlayer.reset();
-
-                if (mCurrentSongPositionInList + 1 < mSongDetailsJDOs.size()) {
-
-                    mCurrentSongPositionInList = mCurrentSongPositionInList + 1;
-                    loadSongDetails();
-                    playOrPauseSong();
-
-                } else {
-                    loadSongDetails();
-                    mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
-                    Toast.makeText(PlayerActivity.this, "No other song is in the list click Previous to go to Previous song", Toast.LENGTH_SHORT).show();
-                }
+        mPreviousIv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSongPlayerService.playPreviousSong();
             }
         });
 
     }
 
-    private void playOrPauseSong() {
 
-        if (isSongPlaying) {
-            isSongPlaying = false;
-            mMediaPlayer.pause();
-            mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
-        } else {
-            isSongPlaying = true;
-            mMediaPlayer.start();
-            mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
-        }
+    /**
+     * Initializes the components required to communicate with the service stars the service and binds it to this activity
+     */
+    private void initServiceCommunication() {
+
+        mIntent = new Intent(this, SongPlayerService.class);
+
+        startService(mIntent.putExtra(getString(R.string.song_list), mSongDetailsJDOs).putExtra(getString(R.string.position), mCurrentSongPositionInList));
+        mServiceConnection = new ServiceConnection() {
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+
+                Log.d(TAG, "onServiceConnected: " + name);
+                mSongPlayerService = ((SongPlayerService.MyBinder) service).getService();
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+
+    /**
+     * initialize the receiver with the
+     */
+    private void initReceivers() {
+
+        mBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (intent.getIntExtra(getString(R.string.current_position_for_seek), -1) != -1) {
+                    int lTimeInMs = intent.getIntExtra(getString(R.string.current_position_for_seek), -1);
+                    mStartTimeTv.setText(ConverterUtil.convertToString(lTimeInMs));
+                    mSeekBar.setProgress(lTimeInMs);
+                }
+                if (intent.getBooleanExtra(getString(R.string.is_new_song), false)) {
+
+                    SongDetailsJDO lSongDetailsJDO = (SongDetailsJDO) intent.getSerializableExtra(getString(R.string.current_song_details));
+                    mTitleTv.setText(lSongDetailsJDO.getTitle());
+
+                    if (lSongDetailsJDO.getAlbumName() != null)
+                        mAlbumNameTv.setText(lSongDetailsJDO.getAlbumName());
+                    else
+                        mAlbumNameTv.setText("<Unknown>");
+
+                    if (lSongDetailsJDO.getAlbumId() != null) {
+
+                        Uri lAlbumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(lSongDetailsJDO.getAlbumId()));
+                        Picasso.with(PlayerActivity.this).load(lAlbumArtUri).centerCrop().resize(800, 800).placeholder(R.drawable.placeholder).into(mAlbumIv);
+
+                    } else
+                        mAlbumIv.setImageResource(R.drawable.placeholder);
+
+                    mSeekBar.setMax(lSongDetailsJDO.getDuration());
+                    mEndTimeTv.setText(ConverterUtil.convertToString(lSongDetailsJDO.getDuration()));
+
+                }
+
+            }
+        };
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(RECEIVER_FILTER));
+
     }
 
 
     @Override
-    public void onCompletion(MediaPlayer mp) {
-
-        isSongPlaying = false;
-        Log.e(TAG, "onCompletion: " + mp);
-
-        mMediaPlayer.reset();
-
-        if (mCurrentSongPositionInList != mSongDetailsJDOs.size() - 1) {
-
-            mCurrentSongPositionInList = mCurrentSongPositionInList + 1;
-            loadSongDetails();
-            playOrPauseSong();
-
-        } else {
-            loadSongDetails();
-            mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
-        }
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-        }
-        return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.scale_up, R.anim.to_right);
+    protected void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        //TODO: unbindService();
+        unbindService(mServiceConnection);
     }
 }

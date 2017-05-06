@@ -18,13 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.PlayerActivity"
-            android:parentActivityName=".ui.SongsListActivity" />
 
-        <service android:name=".services.SongPlayerService" />
-
-        <activity android:name=".ui.PlayerActivityNew"></activity>
+        <activity android:name=".ui.PlayerActivity"></activity>
+        <service android:name=".services.SongPlayerService"/>
     </application>
 
 </manifest>

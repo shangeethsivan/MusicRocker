@@ -2,10 +2,7 @@ package com.shangeeth.musicrocker.adapters;
 
 import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,8 +14,6 @@ import android.widget.TextView;
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +51,7 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         if (mSongDetailsJDOs.get(position).getAlbumId() != null)
             lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
 
-        Picasso.with(mContext).load(lUri).fit().placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+        Picasso.with(mContext).load(lUri).resize(100,100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
 
         String lTrackName = mSongDetailsJDOs.get(position).getTitle();
         if (lTrackName != null)
@@ -69,6 +64,10 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
             holder.albumAndArtistDetailsTV.setText(lAlbumName.trim());
         else
             holder.albumAndArtistDetailsTV.setText("<Unknown>");
+
+        if (mSongDetailsJDOs.get(position).getFavouriteStatus() == 1) {
+            holder.favouriteIV.setImageResource(R.drawable.fav);
+        }
 
         Log.e(TAG, "onBindViewHolder: " + position + lTrackName + ":" + lAlbumName);
     }
@@ -86,12 +85,14 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         ImageView albumImageIV;
         TextView trackNameTV;
         TextView albumAndArtistDetailsTV;
+        ImageView favouriteIV;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             albumImageIV = (ImageView) itemView.findViewById(R.id.album_artwork_iv);
             trackNameTV = (TextView) itemView.findViewById(R.id.title_name_tv);
             albumAndArtistDetailsTV = (TextView) itemView.findViewById(R.id.artist_author_name_tv);
+            favouriteIV = (ImageView) itemView.findViewById(R.id.fav_iv);
         }
     }
 

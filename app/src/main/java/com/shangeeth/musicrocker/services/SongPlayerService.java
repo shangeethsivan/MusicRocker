@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.shangeeth.musicrocker.R;
+import com.shangeeth.musicrocker.db.SongDetailTable;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.shangeeth.musicrocker.ui.PlayerActivity;
 
@@ -45,22 +46,80 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setOnCompletionListener(this);
         mSongDetailsJDOs = new ArrayList<>();
+        mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
 
-            mSongDetailsJDOs = (ArrayList<SongDetailsJDO>) intent.getSerializableExtra(getString(R.string.song_list));
             playSong(intent.getIntExtra(getString(R.string.position), 0));
 
             //Send Broadcast containing the cong updated song details
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
 
-
         }
         return START_STICKY;
     }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy: ");
+        mMediaPlayer.release();
+        super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        mTimer = new Timer();
+
+        trackProgress();
+
+        return mIBinder;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+
+        Log.d(TAG, "onTaskRemoved: ");
+        if (!isSongPlaying)
+            stopSelf();
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+
+        Log.e(TAG, "onRebind: ");
+        mTimer = new Timer();
+        trackProgress();
+    }
+
+
+    public class MyBinder extends Binder {
+        public SongPlayerService getService() {
+            return SongPlayerService.this;
+        }
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "onUnbind: ");
+        mTimer.cancel();
+        mTimer = null;
+        return true;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        Log.d(TAG, "onCompletion: " + mCurrentSongPosition);
+        isSongPlaying = false;
+
+        //TODO: play next Song
+        playNextSong();
+//        mp.reset();
+//        stopSelf();
+    }
+
 
 
     public void playSong(int pPosition) {
@@ -84,6 +143,8 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
             mMediaPlayer.start();
             isSongPlaying = true;
+
+        }else{
 
         }
     }
@@ -123,37 +184,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     }
 
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestroy: ");
-        mMediaPlayer.release();
-        super.onDestroy();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        mTimer = new Timer();
-
-        trackProgress();
-
-        return mIBinder;
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-
-        Log.d(TAG, "onTaskRemoved: ");
-        if (!isSongPlaying)
-            stopSelf();
-    }
-
-    @Override
-    public void onRebind(Intent intent) {
-
-        Log.e(TAG, "onRebind: ");
-        mTimer = new Timer();
-        trackProgress();
-    }
 
     public void playOrPauseSong() {
         if (mMediaPlayer.isPlaying()) {
@@ -169,32 +199,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         mMediaPlayer.seekTo(position);
     }
 
-    public class MyBinder extends Binder {
-        public SongPlayerService getService() {
-            return SongPlayerService.this;
-        }
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind: ");
-        mTimer.cancel();
-        mTimer = null;
-        return true;
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        Log.d(TAG, "onCompletion: " + mCurrentSongPosition);
-        isSongPlaying = false;
-
-        //TODO: play next Song
-        playNextSong();
-//        mp.reset();
-//        stopSelf();
-    }
-
-
     /**
      * An update sent to the activity once there is a call to onStartCommand or if the song changes
      *
@@ -205,7 +209,8 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .sendBroadcast(new Intent().setAction(PlayerActivity.RECEIVER_FILTER)
                         .putExtra(getString(R.string.current_song_details), pSongDetailsJDO)
-                        .putExtra(getString(R.string.is_new_song), pIsNewSong));
+                        .putExtra(getString(R.string.is_new_song), pIsNewSong)
+                        .putExtra(getString(R.string.is_song_playing),mMediaPlayer.isPlaying()));
     }
 
 
@@ -214,7 +219,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
      */
     public void trackProgress() {
 
-        Log.d(TAG, "trackProgress: ");
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -230,24 +234,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
                 }
             }
         }, 200, 200);
-//        mHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.e(TAG, "run: =======" + mMediaPlayer + isSongPlaying);
-//                if (mMediaPlayer != null) {
-//
-//                    int lCurrentDuration = mMediaPlayer.getCurrentPosition();
-//
-//                    //Current position for seek bar
-//                    //TODO: Broadcast the data using localBroadcast Manager
-//                    LocalBroadcastManager.
-//                            getInstance(getApplicationContext())
-//                            .sendBroadcast(new Intent().setAction(PlayerActivity.RECEIVER_FILTER)
-//                                    .putExtra(getString(R.string.current_position_for_seek), lCurrentDuration));
-//                }
-//                mHandler.postDelayed(this, 1000);
-//            }
-//        });
     }
 
 }

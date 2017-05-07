@@ -43,7 +43,6 @@ public class PlayerActivity extends AppCompatActivity {
     private static final String TAG = "PlayerActivity";
     public static final String RECEIVER_FILTER = "com.shangeeth.musicrocker.ui.PlayerReceiver";
 
-    private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
     private int mCurrentSongPositionInList = 0;
     private BroadcastReceiver mBroadcastReceiver;
     private Intent mIntent;
@@ -72,13 +71,11 @@ public class PlayerActivity extends AppCompatActivity {
 
         mSeekBar = (SeekBar) findViewById(R.id.seek_bar);
 
-        mSongDetailsJDOs = new ArrayList<>();
 
         if (getIntent().getExtras() != null) {
 
             Intent lIntent = getIntent();
 
-            mSongDetailsJDOs = (ArrayList<SongDetailsJDO>) lIntent.getSerializableExtra(getString(R.string.song_list));
             mCurrentSongPositionInList = lIntent.getIntExtra(getString(R.string.position), 0);
 
         } else {
@@ -89,7 +86,8 @@ public class PlayerActivity extends AppCompatActivity {
         initReceivers();
         //Initially song will be playing set the play button active
         isSongPlaying = true;
-        mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
+        setPlayOrPauseImage();
+
 
         setOnClickListeners();
 
@@ -104,11 +102,11 @@ public class PlayerActivity extends AppCompatActivity {
                 if (isSongPlaying) {
                     isSongPlaying = false;
                     mSongPlayerService.playOrPauseSong();
-                    mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
+                    setPlayOrPauseImage();
                 } else {
                     isSongPlaying = true;
                     mSongPlayerService.playOrPauseSong();
-                    mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
+                    setPlayOrPauseImage();
                 }
             }
         });
@@ -160,7 +158,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         mIntent = new Intent(this, SongPlayerService.class);
 
-        startService(mIntent.putExtra(getString(R.string.song_list), mSongDetailsJDOs).putExtra(getString(R.string.position), mCurrentSongPositionInList));
+        startService(mIntent.putExtra(getString(R.string.position), mCurrentSongPositionInList));
         mServiceConnection = new ServiceConnection() {
 
             @Override
@@ -215,6 +213,10 @@ public class PlayerActivity extends AppCompatActivity {
                     mSeekBar.setMax(lSongDetailsJDO.getDuration());
                     mEndTimeTv.setText(ConverterUtil.convertToString(lSongDetailsJDO.getDuration()));
 
+                    isSongPlaying = intent.getBooleanExtra(getString(R.string.is_song_playing), false);
+                    setPlayOrPauseImage();
+
+
                 }
 
             }
@@ -222,6 +224,13 @@ public class PlayerActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(RECEIVER_FILTER));
 
+    }
+
+    private void setPlayOrPauseImage() {
+        if (isSongPlaying)
+            mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
+        else
+            mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
     }
 
 

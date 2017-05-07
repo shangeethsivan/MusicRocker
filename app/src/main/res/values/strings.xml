@@ -8,5 +8,7 @@
     <string name="current_song_details">current_song_details</string>
 
     <string name="is_new_song">is_new_song</string>
+    <string name="is_song_playing">is_song_playing</string>
     <string name="total_song_duration">total_song_duration</string>
+    <string name="is_app_loading_first_time">is_app_loading_first_time</string>
 </resources>

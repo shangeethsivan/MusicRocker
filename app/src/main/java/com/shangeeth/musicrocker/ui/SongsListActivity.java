@@ -1,16 +1,13 @@
 package com.shangeeth.musicrocker.ui;
 
 import android.Manifest;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,12 +17,14 @@ import android.view.View;
 
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.adapters.MyRecViewAdapter;
+import com.shangeeth.musicrocker.db.SongDetailTable;
+import com.shangeeth.musicrocker.helper.DBInsertOrUpdateHelper;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.shangeeth.musicrocker.listeners.MyRecyclerViewOnClickListener;
 
 import java.util.ArrayList;
 
-public class SongsListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class SongsListActivity extends AppCompatActivity {
 
     private static final int LOADER_ID = 101;
     protected RecyclerView mRecyclerView;
@@ -43,28 +42,57 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         mRecyclerView.setLayoutManager(new LinearLayoutManager(SongsListActivity.this));
         mSongDetailsJDOs = new ArrayList<>();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-        } else {
-            getLoaderManager().initLoader(LOADER_ID, null, this);
-
-        }
-
-        mAdapter = new MyRecViewAdapter(SongsListActivity.this, null);
-        mRecyclerView.setAdapter(mAdapter);
-
         mRecyclerView.addOnItemTouchListener(new MyRecyclerViewOnClickListener(this, new MyRecyclerViewOnClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
 
                 startActivity(new Intent(SongsListActivity.this, PlayerActivity.class)
-                        .putExtra(getString(R.string.song_list), mSongDetailsJDOs)
                         .putExtra(getString(R.string.position), position));
                 overridePendingTransition(R.anim.from_right, R.anim.scale_down);
             }
         }));
 
+
+        // Check in shared preferences and verify the weather that it is a new data
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+        } else
+            loadData();
+
     }
+
+    /**
+     * Load data into DB if activity opened for first time else load data into recyclerView from DB
+     */
+    private void loadData() {
+
+        SharedPreferences lSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean lIsAppLoadingFirstTime = lSharedPreferences.getBoolean(getString(R.string.is_app_loading_first_time), true);
+
+        if (lIsAppLoadingFirstTime) {
+            SharedPreferences.Editor lEditor = lSharedPreferences.edit();
+            lEditor.putBoolean(getString(R.string.is_app_loading_first_time), false);
+            lEditor.apply();
+
+            //Load data into Database
+            DBInsertOrUpdateHelper lHelper = new DBInsertOrUpdateHelper();
+            lHelper.loadDataIntoDBFromContentProvider(this);
+
+            //TODO: Once db work is over load data into recycler view
+
+            loadDataToRecView();
+            //TODO: REMOVE =--= Data loading from content provider change it to DB and use loader manager for updating DB
+
+        } else {
+
+            // TODO: loadData into from sqlite to RecyclerView
+            loadDataToRecView();
+        }
+
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -75,43 +103,16 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
                     lGranted = false;
             }
             if (lGranted)
-                getLoaderManager().initLoader(0, null, this);
+                loadData();
         }
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.e(TAG, "onCreateLoader: ");
-        return new CursorLoader(this, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM,
-                        MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.DURATION},
-                null, null, MediaStore.Audio.Media.TITLE + " ASC");
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.e(TAG, "onLoadFinished: ");
-        loadDataToArrayList(data);
-        mAdapter.swapData(mSongDetailsJDOs);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        Log.e(TAG, "onLoaderReset: ");
-        mAdapter.swapData(null);
-    }
-
-    public void loadDataToArrayList(Cursor pCursor) {
-        mSongDetailsJDOs.clear();
-        if (pCursor.moveToFirst()) {
-            do {
-                mSongDetailsJDOs.add(new SongDetailsJDO(pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
-                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)),
-                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)),
-                        pCursor.getString(pCursor.getColumnIndex(MediaStore.Audio.Media._ID)),
-                        pCursor.getInt(pCursor.getColumnIndex(MediaStore.Audio.Media.DURATION))));
-
-            } while (pCursor.moveToNext());
-        }
+    /**
+     * Loads data from DB to RecView
+     */
+    public void loadDataToRecView() {
+        mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
+        mAdapter = new MyRecViewAdapter(SongsListActivity.this, mSongDetailsJDOs);
+        mRecyclerView.setAdapter(mAdapter);
     }
 }

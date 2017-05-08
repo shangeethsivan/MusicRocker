@@ -53,21 +53,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         mSongDetailsJDOs = new ArrayList<>();
         mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
 
-//
-//        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        SharedPreferences.Editor lEditor = mSharedPreferences.edit();
-//
-//        int lSongPosition = mSharedPreferences.getInt(getString(R.string.song_position), -1);
-//        if (lSongPosition != -1) {
-//            Intent lIntent = new Intent(this, SongPlayerService.class);
-//            lIntent.putExtra(getString(R.string.position),lSongPosition);
-//            lIntent.putExtra(getString(R.string.song_duration),mSharedPreferences.getInt(getString(R.string.song_duration),0));
-//            startService(lIntent);
-//            lEditor.remove(getString(R.string.song_position));
-//            lEditor.apply();
-//            Log.d(TAG, "onCreate: ===== "+lSongPosition+" "+mSharedPreferences.getInt(getString(R.string.song_duration),0));
-//        }
-
     }
 
     @Override
@@ -240,6 +225,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             Toast.makeText(getApplicationContext(), "No other song is in the list click next to go to next song", Toast.LENGTH_SHORT).show();
         }
 
+
     }
 
 
@@ -247,6 +233,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         if (mMediaPlayer.isPlaying()) {
             isSongPlaying = false;
             mMediaPlayer.pause();
+            removeSharedPrefs();
         } else {
             mMediaPlayer.start();
             isSongPlaying = true;

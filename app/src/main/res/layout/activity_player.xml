@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@color/white"
     android:orientation="vertical"
-    android:animateLayoutChanges="true"
     tools:context="com.shangeeth.musicrocker.ui.PlayerActivity">
 
     <ImageView
@@ -13,29 +13,53 @@
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:layout_gravity="center"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="30dp"
         android:src="@drawable/placeholder" />
 
     <TextView
         android:id="@+id/title_tv"
         android:layout_width="match_parent"
-        android:layout_marginTop="50dp"
-        android:ellipsize="end"
-        android:lines="1"
         android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:ellipsize="end"
         android:gravity="center"
+        android:lines="1"
         android:textSize="20sp"
         tools:text="Hey Mama" />
 
     <TextView
         android:id="@+id/album_name_tv"
-        android:ellipsize="end"
-        android:lines="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:ellipsize="end"
         android:gravity="center"
+        android:lines="1"
         android:textSize="16sp"
         tools:text="David Guetta" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp">
+
+        <ImageView
+            android:id="@+id/loop_iv"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/fav_u" />
+
+        <ImageView
+            android:id="@+id/fav_iv"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center"
+            android:src="@drawable/fav_u" />
+
+    </RelativeLayout>
 
     <SeekBar
         android:id="@+id/seek_bar"
@@ -43,7 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="20dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"

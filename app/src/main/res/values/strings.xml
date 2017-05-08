@@ -4,6 +4,8 @@
 
     <string name="song_list">song_list</string>
     <string name="position">position</string>
+    <string name="song_duration">song_duration</string>
+    <string name="song_position">song_position</string>
     <string name="current_position_for_seek">current_position</string>
     <string name="current_song_details">current_song_details</string>
 
@@ -11,4 +13,7 @@
     <string name="is_song_playing">is_song_playing</string>
     <string name="total_song_duration">total_song_duration</string>
     <string name="is_app_loading_first_time">is_app_loading_first_time</string>
+    <string name="is_data_changed">is_data_changed</string>
+
+    <string name="loop_state">loop_state</string>
 </resources>

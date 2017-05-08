@@ -55,4 +55,8 @@ public class SongDetailsJDO implements Serializable {
     public String toString() {
         return getTitle() + " " + getAlbumId() + " " + getAlbumName() + " " + getSongId()+" "+ getFavouriteStatus();
     }
+
+    public void setFavouriteStatus(int favouriteStatus) {
+        this.favouriteStatus = favouriteStatus;
+    }
 }

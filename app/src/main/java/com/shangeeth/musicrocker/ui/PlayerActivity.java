@@ -13,32 +13,34 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.shangeeth.musicrocker.R;
+import com.shangeeth.musicrocker.db.SongDetailTable;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 import com.shangeeth.musicrocker.services.SongPlayerService;
 import com.shangeeth.musicrocker.util.ConverterUtil;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-
 public class PlayerActivity extends AppCompatActivity {
 
-    protected TextView mTitleTv;
-    protected TextView mAlbumNameTv;
-    protected TextView mStartTimeTv;
-    protected TextView mEndTimeTv;
+    private TextView mTitleTv;
+    private TextView mAlbumNameTv;
+    private TextView mStartTimeTv;
+    private TextView mEndTimeTv;
 
-    protected ImageView mAlbumIv;
-    protected ImageView mPreviousIv;
-    protected ImageView mPlayOrPauseIv;
-    protected ImageView mNextIv;
+    private ImageView mAlbumIv;
+    private ImageView mPreviousIv;
+    private ImageView mPlayOrPauseIv;
+    private ImageView mNextIv;
+    private ImageView mFavIv;
+    private ImageView mLoopIv;
 
-    protected SeekBar mSeekBar;
+    private SeekBar mSeekBar;
 
     private static final String TAG = "PlayerActivity";
     public static final String RECEIVER_FILTER = "com.shangeeth.musicrocker.ui.PlayerReceiver";
@@ -51,6 +53,14 @@ public class PlayerActivity extends AppCompatActivity {
 
     public SongPlayerService mSongPlayerService;
     private ServiceConnection mServiceConnection;
+
+    private String mCurrentSongId = "";
+    private int mFavouriteStatus = 0;
+    private boolean mDataChanged = false;
+    public static int RESULT_CODE = 111;
+
+    private int[] mLoopImages = {R.drawable.loop_disabled, R.drawable.loop_all, R.drawable.loop_one};
+    int mCurrentLoopState = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +78,12 @@ public class PlayerActivity extends AppCompatActivity {
         mPreviousIv = (ImageView) findViewById(R.id.previous_iv);
         mPlayOrPauseIv = (ImageView) findViewById(R.id.play_or_pause_iv);
         mNextIv = (ImageView) findViewById(R.id.next_iv);
+        mFavIv = (ImageView) findViewById(R.id.fav_iv);
+        mLoopIv = (ImageView) findViewById(R.id.loop_iv);
 
         mSeekBar = (SeekBar) findViewById(R.id.seek_bar);
 
+        setOnClickListeners();
 
         if (getIntent().getExtras() != null) {
 
@@ -87,9 +100,6 @@ public class PlayerActivity extends AppCompatActivity {
         //Initially song will be playing set the play button active
         isSongPlaying = true;
         setPlayOrPauseImage();
-
-
-        setOnClickListeners();
 
 
     }
@@ -114,7 +124,7 @@ public class PlayerActivity extends AppCompatActivity {
         mNextIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSongPlayerService.playNextSong();
+                mSongPlayerService.playNextSong(false);
             }
         });
 
@@ -148,6 +158,29 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        mFavIv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDataChanged = true;
+
+                if (mFavouriteStatus == 0)
+                    mFavouriteStatus = 1;
+                else
+                    mFavouriteStatus = 0;
+                setFavImage();
+                updateFavDataInDb();
+            }
+        });
+
+        mLoopIv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentLoopState = (mCurrentLoopState >= 2 ? -1 : mCurrentLoopState) + 1;
+                mSongPlayerService.setLoopState(mCurrentLoopState);
+                mLoopIv.setImageResource(mLoopImages[mCurrentLoopState]);
+            }
+        });
+
     }
 
 
@@ -164,7 +197,6 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
 
-                Log.d(TAG, "onServiceConnected: " + name);
                 mSongPlayerService = ((SongPlayerService.MyBinder) service).getService();
 
             }
@@ -216,6 +248,12 @@ public class PlayerActivity extends AppCompatActivity {
                     isSongPlaying = intent.getBooleanExtra(getString(R.string.is_song_playing), false);
                     setPlayOrPauseImage();
 
+                    mCurrentSongId = lSongDetailsJDO.getSongId();
+                    mFavouriteStatus = lSongDetailsJDO.getFavouriteStatus();
+                    setFavImage();
+                    //TODO: Set Current loop state here
+                    mCurrentLoopState = intent.getIntExtra(getString(R.string.loop_state), 0);
+                    mLoopIv.setImageResource(mLoopImages[mCurrentLoopState]);
 
                 }
 
@@ -233,12 +271,39 @@ public class PlayerActivity extends AppCompatActivity {
             mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
     }
 
+    private void setFavImage() {
+        if (mFavouriteStatus == 1)
+            mFavIv.setImageResource(R.drawable.fav);
+        else
+            mFavIv.setImageResource(R.drawable.fav_u);
+    }
+
+    private void updateFavDataInDb() {
+        SongDetailTable lSongDetailTable = new SongDetailTable(this);
+        lSongDetailTable.setFavouriteStatus(mCurrentSongId, mFavouriteStatus);
+        mSongPlayerService.updateFavInJDO(mFavouriteStatus);
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-        //TODO: unbindService();
         unbindService(mServiceConnection);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_CODE, new Intent().putExtra(getString(R.string.is_data_changed), mDataChanged));
+        finish();
     }
 }

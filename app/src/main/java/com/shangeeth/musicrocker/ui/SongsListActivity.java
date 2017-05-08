@@ -31,6 +31,7 @@ public class SongsListActivity extends AppCompatActivity {
     private MyRecViewAdapter mAdapter;
     private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
     private static final String TAG = "SongsListActivity";
+    private int REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +47,8 @@ public class SongsListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
 
-                startActivity(new Intent(SongsListActivity.this, PlayerActivity.class)
-                        .putExtra(getString(R.string.position), position));
+                startActivityForResult(new Intent(SongsListActivity.this, PlayerActivity.class)
+                        .putExtra(getString(R.string.position), position), REQUEST_CODE);
                 overridePendingTransition(R.anim.from_right, R.anim.scale_down);
             }
         }));
@@ -114,5 +115,17 @@ public class SongsListActivity extends AppCompatActivity {
         mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
         mAdapter = new MyRecViewAdapter(SongsListActivity.this, mSongDetailsJDOs);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE) {
+            if (data.getExtras() != null && resultCode == PlayerActivity.RESULT_CODE) {
+                //if data changed reload the recyclerView
+                if (data.getBooleanExtra(getString(R.string.is_data_changed), false))
+                    loadDataToRecView();
+
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 
@@ -16,6 +17,8 @@ import java.util.ArrayList;
 public class SongDetailTable {
 
     Context mContext;
+
+    private static final String TAG = "SongDetailTable";
 
     public static final String TABLE_NAME = "song_details";
     public static final String _ID = "id";
@@ -34,6 +37,7 @@ public class SongDetailTable {
             + DURATION + " INT,"
             + FAVOURITE + " INT)";
 
+
     public SongDetailTable(Context mContext) {
         this.mContext = mContext;
     }
@@ -44,6 +48,11 @@ public class SongDetailTable {
     }
 
 
+    /**
+     * Insert the data from the @pSongDetailsJDOs into the @TABLE
+     *
+     * @param pSongDetailsJDOs Arraylist of SongDetailJDO
+     */
     public void insertRows(ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
 
         SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();
@@ -68,7 +77,13 @@ public class SongDetailTable {
         lSqLiteDatabase.close();
     }
 
+    /**
+     * Fetches all the songs available in db
+     *
+     * @return returns the song list as a arraylist of @{@link SongDetailsJDO}
+     */
     public ArrayList<SongDetailsJDO> getAllSongs() {
+
         ArrayList<SongDetailsJDO> lSongDetailsJDOs = new ArrayList<>();
         SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getReadableDatabase();
 
@@ -85,5 +100,24 @@ public class SongDetailTable {
             } while (lCursor.moveToNext());
         }
         return lSongDetailsJDOs;
+    }
+
+    /**
+     * Sets the favourite status of the song
+     *
+     * @param pSongId    the song Id
+     * @param pFavStatus the favourite status
+     */
+    public void setFavouriteStatus(String pSongId, int pFavStatus) {
+
+        Log.d(TAG, "setFavouriteStatus: ======"+pSongId +" "+pFavStatus);
+        SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();
+
+        ContentValues lValues = new ContentValues();
+        lValues.put(FAVOURITE, pFavStatus);
+
+        lSqLiteDatabase.update(TABLE_NAME, lValues, SONG_ID + "=?", new String[]{String.valueOf(pSongId)});
+
+        lSqLiteDatabase.close();
     }
 }

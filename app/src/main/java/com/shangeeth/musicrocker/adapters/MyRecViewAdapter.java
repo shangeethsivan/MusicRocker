@@ -18,9 +18,6 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by user on 03/05/17.
- */
 
 public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyViewHolder> {
 
@@ -37,7 +34,6 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Log.e(TAG, "onCreateViewHolder: " + viewType);
 
         View lView = mLayoutInflater.inflate(R.layout.recycler_view_item, parent, false);
 
@@ -51,7 +47,7 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         if (mSongDetailsJDOs.get(position).getAlbumId() != null)
             lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
 
-        Picasso.with(mContext).load(lUri).resize(100,100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+        Picasso.with(mContext).load(lUri).resize(100, 100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
 
         String lTrackName = mSongDetailsJDOs.get(position).getTitle();
         if (lTrackName != null)
@@ -65,11 +61,11 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         else
             holder.albumAndArtistDetailsTV.setText("<Unknown>");
 
-        if (mSongDetailsJDOs.get(position).getFavouriteStatus() == 1) {
+        if (mSongDetailsJDOs.get(position).getFavouriteStatus() == 1)
             holder.favouriteIV.setImageResource(R.drawable.fav);
-        }
+        else
+            holder.favouriteIV.setImageResource(R.drawable.fav_u);
 
-        Log.e(TAG, "onBindViewHolder: " + position + lTrackName + ":" + lAlbumName);
     }
 
     @Override

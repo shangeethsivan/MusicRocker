@@ -3,15 +3,16 @@ package com.shangeeth.musicrocker.services;
 import android.app.Service;
 import android.content.ContentUris;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
-import android.os.Handler;
+import android.os.Build;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.shangeeth.musicrocker.R;
@@ -35,6 +36,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
 
     private Timer mTimer;
+    private int mLoopState = 0;
 
     private final IBinder mIBinder = new MyBinder();
 
@@ -47,13 +49,29 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         mMediaPlayer.setOnCompletionListener(this);
         mSongDetailsJDOs = new ArrayList<>();
         mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
+
+
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor lEditor = mSharedPreferences.edit();
+
+        int lSongPosition = mSharedPreferences.getInt(getString(R.string.song_position), -1);
+        if (lSongPosition != -1) {
+            Intent lIntent = new Intent(this, SongPlayerService.class);
+            lIntent.putExtra(getString(R.string.position),lSongPosition);
+            lIntent.putExtra(getString(R.string.song_duration),mSharedPreferences.getInt(getString(R.string.song_duration),0));
+            startService(lIntent);
+            lEditor.remove(getString(R.string.song_position));
+            lEditor.apply();
+            Log.d(TAG, "onCreate: ===== "+lSongPosition+" "+mSharedPreferences.getInt(getString(R.string.song_duration),0));
+        }
+
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
 
-            playSong(intent.getIntExtra(getString(R.string.position), 0));
+            playSong(intent.getIntExtra(getString(R.string.position), 0),intent.getIntExtra(getString(R.string.song_duration),0));
 
             //Send Broadcast containing the cong updated song details
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
@@ -82,8 +100,20 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     public void onTaskRemoved(Intent rootIntent) {
 
         Log.d(TAG, "onTaskRemoved: ");
-        if (!isSongPlaying)
+
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor lEditor = mSharedPreferences.edit();
+
+        Log.d(TAG, "onTaskRemoved: ====="+isSongPlaying+" "+Build.VERSION.SDK_INT+" "+ mCurrentSongPosition);
+        if (isSongPlaying && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            lEditor.putInt(getString(R.string.song_position), mCurrentSongPosition);
+            lEditor.putInt(getString(R.string.song_duration), mMediaPlayer.getCurrentPosition());
+        } else if (!isSongPlaying)
             stopSelf();
+        else {
+            lEditor.remove(getString(R.string.song_position));
+        }
+        lEditor.apply();
     }
 
     @Override
@@ -109,28 +139,14 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         return true;
     }
 
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        Log.d(TAG, "onCompletion: " + mCurrentSongPosition);
-        isSongPlaying = false;
 
-        //TODO: play next Song
-        playNextSong();
-//        mp.reset();
-//        stopSelf();
-    }
+    public void playSong(int pPosition,int pDuration) {
 
-
-
-    public void playSong(int pPosition) {
-
-        if (mCurrentSongPosition != pPosition) {
+        if (mCurrentSongPosition != pPosition || mCurrentSongPosition == pPosition && !mMediaPlayer.isPlaying()) {
             mMediaPlayer.stop();
             mMediaPlayer.reset();
-            //TODO: Request an update to the UI once all data is loaded
 
             mCurrentSongPosition = pPosition;
-
             try {
                 Uri lUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(mSongDetailsJDOs.get(mCurrentSongPosition).getSongId()));
                 Log.e(TAG, "onStartCommand: " + lUri);
@@ -142,31 +158,40 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             }
 
             mMediaPlayer.start();
+            Log.d(TAG, "playSong: ======"+mCurrentSongPosition+" "+pDuration +" "+mMediaPlayer.getDuration());
+            mMediaPlayer.seekTo(pDuration);
             isSongPlaying = true;
 
-        }else{
 
         }
     }
 
 
-    public void playNextSong() {
+    public int playNextSong(boolean pIsLoop) {
 
         isSongPlaying = false;
 
-        if (mCurrentSongPosition + 1 < mSongDetailsJDOs.size()) {
+        if (pIsLoop) {
+            playSong(mCurrentSongPosition,0);
+            songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
+            return 0;
+        } else if (mCurrentSongPosition + 1 < mSongDetailsJDOs.size()) {
 
-            playSong(mCurrentSongPosition + 1);
+            playSong(mCurrentSongPosition + 1,0);
+
             Log.d(TAG, "playNextSong: " + mCurrentSongPosition);
 
             //Send Broadcast containing the cong updated song details
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
 
+            return 0;
+
         } else {
-            Toast.makeText(getApplicationContext(), "No other song is in the list click Previous to go to Previous song", Toast.LENGTH_SHORT).show();
+            return -1;
         }
 
     }
+
 
     public void playPreviousSong() {
 
@@ -174,7 +199,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
         if (mCurrentSongPosition - 1 >= 0) {
 
-            playSong(mCurrentSongPosition - 1);
+            playSong(mCurrentSongPosition - 1,0);
 
             //Send Broadcast containing the cong updated song details
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
@@ -195,7 +220,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         }
     }
 
-    public void seekSong(int position){
+    public void seekSong(int position) {
         mMediaPlayer.seekTo(position);
     }
 
@@ -210,7 +235,9 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
                 .sendBroadcast(new Intent().setAction(PlayerActivity.RECEIVER_FILTER)
                         .putExtra(getString(R.string.current_song_details), pSongDetailsJDO)
                         .putExtra(getString(R.string.is_new_song), pIsNewSong)
-                        .putExtra(getString(R.string.is_song_playing),mMediaPlayer.isPlaying()));
+                        .putExtra(getString(R.string.loop_state), mLoopState)
+                        .putExtra(getString(R.string.is_song_playing), mMediaPlayer.isPlaying()));
+
     }
 
 
@@ -236,6 +263,33 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         }, 200, 200);
     }
 
+    public void updateFavInJDO(int pFavStatus) {
+        mSongDetailsJDOs.get(mCurrentSongPosition).setFavouriteStatus(pFavStatus);
+    }
+
+    public void setLoopState(int pLoopState) {
+        mLoopState = pLoopState;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        Log.d(TAG, "onCompletion: =====" + mCurrentSongPosition);
+        isSongPlaying = false;
+
+        //TODO: Loop functionality
+
+        Log.d(TAG, "onCompletion: =====" + mLoopState);
+        if (mLoopState == 2)
+            playNextSong(true);
+        else {
+            int lSongStat = playNextSong(false);
+            if (lSongStat == -1 && mLoopState == 1) {
+                playSong(0,0);
+                songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
+            }
+        }
+    }
 }
+
 
 

@@ -88,8 +88,14 @@ public class SongsListActivity extends AppCompatActivity {
 
         } else {
 
-            // TODO: loadData into from sqlite to RecyclerView
             loadDataToRecView();
+
+            if (lSharedPreferences.getBoolean(getString(R.string.is_song_playing), false)) {
+                startActivityForResult(new Intent(SongsListActivity.this, PlayerActivity.class)
+                        .putExtra(getString(R.string.position), lSharedPreferences.getInt(getString(R.string.position), 0)), REQUEST_CODE);
+                overridePendingTransition(R.anim.from_right, R.anim.scale_down);
+            }
+
         }
 
     }

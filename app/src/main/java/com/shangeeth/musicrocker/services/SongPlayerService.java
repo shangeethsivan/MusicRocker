@@ -6,6 +6,8 @@ import android.app.Service;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -94,20 +96,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             stopSelf();
         }
 
-
-//        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        SharedPreferences.Editor lEditor = mSharedPreferences.edit();
-//
-//        Log.d(TAG, "onTaskRemoved: ====="+isSongPlaying+" "+Build.VERSION.SDK_INT+" "+ mCurrentSongPosition);
-//        if (isSongPlaying && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            lEditor.putInt(getString(R.string.song_position), mCurrentSongPosition);
-//            lEditor.putInt(getString(R.string.song_duration), mMediaPlayer.getCurrentPosition());
-//        } else if (!isSongPlaying)
-//            stopSelf();
-//        else {
-//            lEditor.remove(getString(R.string.song_position));
-//        }
-//        lEditor.apply();
     }
 
     @Override
@@ -162,8 +150,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
              */
             Intent lIntent = new Intent(getApplicationContext(), SongsListActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent lPendingIntent = PendingIntent.getActivity(getApplicationContext(), 100, lIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            Notification lBuilder = new Notification.Builder(getApplicationContext()).setContentTitle(mSongDetailsJDOs.get(mCurrentSongPosition).getTitle())
+            Notification lBuilder = new Notification.Builder(getApplicationContext()).setContentTitle("Playing "+mSongDetailsJDOs.get(mCurrentSongPosition).getTitle())
                     .setContentText(mSongDetailsJDOs.get(mCurrentSongPosition).getAlbumName())
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentIntent(lPendingIntent)

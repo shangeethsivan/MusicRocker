@@ -312,5 +312,6 @@ public class PlayerActivity extends AppCompatActivity {
     public void onBackPressed() {
         setResult(RESULT_CODE, new Intent().putExtra(getString(R.string.is_data_changed), mDataChanged));
         finish();
+        overridePendingTransition(R.anim.scale_up,R.anim.to_right);
     }
 }

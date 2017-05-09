@@ -2,13 +2,18 @@ package com.shangeeth.musicrocker.ui;
 
 import android.Manifest;
 import android.app.SearchManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,17 +35,17 @@ import com.shangeeth.musicrocker.listeners.MyRecyclerViewOnClickListener;
 
 import java.util.ArrayList;
 
-public class SongsListActivity extends AppCompatActivity {
+public class SongsListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-
-    protected RecyclerView mRecyclerView;
+    private RecyclerView mRecyclerView;
     private MyRecViewAdapter mAdapter;
     private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
     private TextView mNoSongTV;
 
-    private static final String TAG = "SongsListActivity";
     private int REQUEST_CODE = 101;
     private static final int LOADER_ID = 101;
+
+    private static final String TAG = "SongsListActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,12 +96,12 @@ public class SongsListActivity extends AppCompatActivity {
 
             //TODO: Once db work is over load data into recycler view
 
-            loadDataToRecView();
+            loadDataToRecViewAndInitLoader();
             //TODO: REMOVE =--= Data loading from content provider change it to DB and use loader manager for updating DB
 
         } else {
 
-            loadDataToRecView();
+            loadDataToRecViewAndInitLoader();
 
             if (lSharedPreferences.getBoolean(getString(R.string.is_song_playing), false)) {
                 startActivityForResult(new Intent(SongsListActivity.this, PlayerActivity.class)
@@ -125,10 +130,16 @@ public class SongsListActivity extends AppCompatActivity {
     /**
      * Loads data from DB to RecView
      */
-    public void loadDataToRecView() {
+    public void loadDataToRecViewAndInitLoader() {
+
+        //Loading data to RecyclerView
+
         mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
         mAdapter = new MyRecViewAdapter(SongsListActivity.this, mSongDetailsJDOs);
         mRecyclerView.setAdapter(mAdapter);
+
+        //Init Loader
+
     }
 
     @Override
@@ -137,7 +148,7 @@ public class SongsListActivity extends AppCompatActivity {
             if (data.getExtras() != null && resultCode == PlayerActivity.RESULT_CODE) {
                 //if data changed reload the recyclerView
                 if (data.getBooleanExtra(getString(R.string.is_data_changed), false))
-                    loadDataToRecView();
+                    loadDataToRecViewAndInitLoader();
 
             }
         }
@@ -168,19 +179,21 @@ public class SongsListActivity extends AppCompatActivity {
     }
 
     private void filterRecView(String pText) {
-        if (pText.equals("")) {
-            mAdapter.swapData(mSongDetailsJDOs);
-            toggleVisibilityForNoResult(mSongDetailsJDOs.size(), pText);
-        } else {
-            ArrayList<SongDetailsJDO> lSongDetailsJDOs = new ArrayList<>();
+        if (pText != null) {
+            if (pText.equals("")) {
+                mAdapter.swapData(mSongDetailsJDOs);
+                toggleVisibilityForNoResult(mSongDetailsJDOs.size(), pText);
+            } else {
+                ArrayList<SongDetailsJDO> lSongDetailsJDOs = new ArrayList<>();
 
-            pText = pText.toLowerCase();
-            for (SongDetailsJDO lDetailsJDO : mSongDetailsJDOs) {
-                if (lDetailsJDO.getTitle().toLowerCase().contains(pText) || lDetailsJDO.getAlbumName().toLowerCase().contains(pText))
-                    lSongDetailsJDOs.add(lDetailsJDO);
+                pText = pText.toLowerCase();
+                for (SongDetailsJDO lDetailsJDO : mSongDetailsJDOs) {
+                    if (lDetailsJDO.getTitle().toLowerCase().contains(pText) || lDetailsJDO.getAlbumName()!=null && lDetailsJDO.getAlbumName().toLowerCase().contains(pText))
+                        lSongDetailsJDOs.add(lDetailsJDO);
+                }
+                toggleVisibilityForNoResult(lSongDetailsJDOs.size(), pText);
+                mAdapter.swapData(lSongDetailsJDOs);
             }
-            toggleVisibilityForNoResult(lSongDetailsJDOs.size(), pText);
-            mAdapter.swapData(lSongDetailsJDOs);
         }
 
     }
@@ -195,4 +208,17 @@ public class SongsListActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null, null, MediaStore.Audio.Media.TITLE + " ASC");
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
 }

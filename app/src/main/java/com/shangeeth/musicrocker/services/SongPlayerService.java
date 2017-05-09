@@ -185,45 +185,49 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     }
 
 
-    public int playNextSong(boolean pIsLoop) {
+    public int playNextSong(boolean pCallFromActivity) {
 
         isSongPlaying = false;
 
-        if (pIsLoop) {
+        if (pCallFromActivity) {
+            chooseSong();
+        } else if (mLoopState == 2) {
             playSong(mCurrentSongPosition, 0);
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
             return 0;
-        } else if (mCurrentSongPosition + 1 < mSongDetailsJDOs.size()) {
-
-            playSong(mCurrentSongPosition + 1, 0);
-
-            Log.d(TAG, "playNextSong: " + mCurrentSongPosition);
-
-            //Send Broadcast containing the cong updated song details
-            songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
-
+        } else if (mLoopState == 1) {
+            chooseSong();
             return 0;
-
-        } else {
+        } else if (mLoopState == 0 && mCurrentSongPosition + 1 >= mSongDetailsJDOs.size()) {
             return -1;
+        } else {
+            chooseSong();
+            return 0;
         }
-
+        return 0;
     }
 
+    public void chooseSong() {
+        if (mCurrentSongPosition + 1 < mSongDetailsJDOs.size()) {
+            playSong(mCurrentSongPosition + 1, 0);
+        } else {
+            playSong(0, 0);
+
+        }
+        songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
+    }
 
     public void playPreviousSong() {
 
         isSongPlaying = false;
 
-        if (mCurrentSongPosition - 1 >= 0) {
-
+        if (mCurrentSongPosition - 1 >= 0)
             playSong(mCurrentSongPosition - 1, 0);
+        else
+            playSong(mSongDetailsJDOs.size() - 1, 0);
 
-            //Send Broadcast containing the cong updated song details
-            songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
-        } else {
-            Toast.makeText(getApplicationContext(), "No other song is in the list click next to go to next song", Toast.LENGTH_SHORT).show();
-        }
+        //Send Broadcast containing the updated song details
+        songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
 
 
     }
@@ -298,20 +302,13 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
         //TODO: Loop functionality
 
-        Log.d(TAG, "onCompletion: =====" + mLoopState);
-        if (mLoopState == 2)
-            playNextSong(true);
-        else {
-            int lSongStat = playNextSong(false);
-            if (lSongStat == -1 && mLoopState == 1) {
-                playSong(0, 0);
-                songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
-            }
-        }
-
-        if (!mMediaPlayer.isPlaying()) {
-
+        int lSongStatus = playNextSong(false);
+        if (!mMediaPlayer.isPlaying() && lSongStatus == -1) {
+            Log.d(TAG, "onCompletion: =====" + mLoopState);
             removeSharedPrefs();
+            LocalBroadcastManager.getInstance(getApplicationContext())
+                    .sendBroadcast(new Intent(PlayerActivity.RECEIVER_FILTER)
+                            .putExtra(getString(R.string.song_ended), true));
         }
 
     }

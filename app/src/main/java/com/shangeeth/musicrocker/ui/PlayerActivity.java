@@ -124,7 +124,7 @@ public class PlayerActivity extends AppCompatActivity {
         mNextIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSongPlayerService.playNextSong(false);
+                mSongPlayerService.playNextSong(true);
             }
         });
 
@@ -224,6 +224,7 @@ public class PlayerActivity extends AppCompatActivity {
                     mStartTimeTv.setText(ConverterUtil.convertToString(lTimeInMs));
                     mSeekBar.setProgress(lTimeInMs);
                 }
+
                 if (intent.getBooleanExtra(getString(R.string.is_new_song), false)) {
 
                     SongDetailsJDO lSongDetailsJDO = (SongDetailsJDO) intent.getSerializableExtra(getString(R.string.current_song_details));
@@ -255,6 +256,12 @@ public class PlayerActivity extends AppCompatActivity {
                     mCurrentLoopState = intent.getIntExtra(getString(R.string.loop_state), 0);
                     mLoopIv.setImageResource(mLoopImages[mCurrentLoopState]);
 
+                }
+
+
+                if (intent.getBooleanExtra(getString(R.string.song_ended), false)) {
+                    isSongPlaying = false;
+                    setPlayOrPauseImage();
                 }
 
             }

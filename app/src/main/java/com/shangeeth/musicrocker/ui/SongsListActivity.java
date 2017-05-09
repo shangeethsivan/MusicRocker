@@ -1,6 +1,7 @@
 package com.shangeeth.musicrocker.ui;
 
 import android.Manifest;
+import android.app.SearchManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -12,8 +13,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
+import android.widget.TextView;
 
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.adapters.MyRecViewAdapter;
@@ -26,12 +32,15 @@ import java.util.ArrayList;
 
 public class SongsListActivity extends AppCompatActivity {
 
-    private static final int LOADER_ID = 101;
+
     protected RecyclerView mRecyclerView;
     private MyRecViewAdapter mAdapter;
     private ArrayList<SongDetailsJDO> mSongDetailsJDOs;
+    private TextView mNoSongTV;
+
     private static final String TAG = "SongsListActivity";
     private int REQUEST_CODE = 101;
+    private static final int LOADER_ID = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +49,7 @@ public class SongsListActivity extends AppCompatActivity {
         super.setContentView(R.layout.activity_main);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.rec_view);
+        mNoSongTV = (TextView) findViewById(R.id.no_song_tv);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(SongsListActivity.this));
         mSongDetailsJDOs = new ArrayList<>();
 
@@ -54,15 +64,13 @@ public class SongsListActivity extends AppCompatActivity {
         }));
 
 
-        // Check in shared preferences and verify the weather that it is a new data
-
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
         } else
             loadData();
 
     }
+
 
     /**
      * Load data into DB if activity opened for first time else load data into recyclerView from DB
@@ -134,4 +142,57 @@ public class SongsListActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater lMenuInflater = getMenuInflater();
+        lMenuInflater.inflate(R.menu.menu_song_list, menu);
+
+        SearchManager lSearchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        SearchView lSearchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        lSearchView.setSearchableInfo(lSearchManager.getSearchableInfo(getComponentName()));
+        lSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterRecView(newText);
+                return true;
+            }
+        });
+
+        return true;
+    }
+
+    private void filterRecView(String pText) {
+        if (pText.equals("")) {
+            mAdapter.swapData(mSongDetailsJDOs);
+            toggleVisibilityForNoResult(mSongDetailsJDOs.size(), pText);
+        } else {
+            ArrayList<SongDetailsJDO> lSongDetailsJDOs = new ArrayList<>();
+
+            pText = pText.toLowerCase();
+            for (SongDetailsJDO lDetailsJDO : mSongDetailsJDOs) {
+                if (lDetailsJDO.getTitle().toLowerCase().contains(pText) || lDetailsJDO.getAlbumName().toLowerCase().contains(pText))
+                    lSongDetailsJDOs.add(lDetailsJDO);
+            }
+            toggleVisibilityForNoResult(lSongDetailsJDOs.size(), pText);
+            mAdapter.swapData(lSongDetailsJDOs);
+        }
+
+    }
+
+    public void toggleVisibilityForNoResult(int pNumberOfSongs, String query) {
+
+        if (pNumberOfSongs == 0) {
+            mNoSongTV.setVisibility(View.VISIBLE);
+            mNoSongTV.setText(getString(R.string.nosong) + " " + query);
+        } else
+            mNoSongTV.setVisibility(View.INVISIBLE);
+    }
+
+
 }

@@ -4,6 +4,9 @@
 
     <string name="song_list">song_list</string>
     <string name="position">position</string>
+
+    <string name="song_id">song_id</string>
+    <string name="song_jdo">song_jdo</string>
     <string name="song_duration">song_duration</string>
     <string name="song_position">song_position</string>
     <string name="current_position_for_seek">current_position_for_seek</string>
@@ -18,4 +21,5 @@
     <string name="loop_state">loop_state</string>
     <string name="song_ended">song_ended</string>
     <string name="nosong">Sorry no Songs were found for </string>
+    <string name="fav_changed_list">fav_changed_list</string>
 </resources>

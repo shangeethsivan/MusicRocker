@@ -2,9 +2,7 @@ package com.shangeeth.musicrocker.helper;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -37,10 +35,10 @@ public class DBInsertOrUpdateHelper {
 
         if (lCursor.moveToFirst()) {
             do {
-                lList.add(new SongDetailsJDO(lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
-                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)),
-                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)),
-                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media._ID)),
+                lList.add(new SongDetailsJDO(lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)).trim(),
+                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)).trim(),
+                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)).trim(),
+                        lCursor.getString(lCursor.getColumnIndex(MediaStore.Audio.Media._ID)).trim(),
                         lCursor.getInt(lCursor.getColumnIndex(MediaStore.Audio.Media.DURATION)), 0));
             } while (lCursor.moveToNext());
         }
@@ -48,7 +46,7 @@ public class DBInsertOrUpdateHelper {
         lCursor.close();
 
         SongDetailTable lSongDetailTable = new SongDetailTable(pContext);
-        lSongDetailTable.insertRows(lList);
+        lSongDetailTable.insertSongs(lList);
         lProgressDialog.dismiss();
 
         Log.d(TAG, "loadDataIntoDBFromContentProvider: ==============");

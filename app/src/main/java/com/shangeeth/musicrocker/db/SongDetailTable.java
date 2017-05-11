@@ -53,7 +53,7 @@ public class SongDetailTable {
      *
      * @param pSongDetailsJDOs Arraylist of SongDetailJDO
      */
-    public void insertRows(ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
+    public void insertSongs(ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
 
         SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();
         lSqLiteDatabase.beginTransaction();
@@ -102,6 +102,23 @@ public class SongDetailTable {
         return lSongDetailsJDOs;
     }
 
+
+    public void removeSongsForIds(ArrayList<String> pSongIds) {
+
+        SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();
+
+        lSqLiteDatabase.beginTransaction();
+        try {
+            for (String lId : pSongIds) {
+                lSqLiteDatabase.delete(TABLE_NAME, SONG_ID + "=?", new String[]{lId});
+            }
+            lSqLiteDatabase.setTransactionSuccessful();
+        } finally {
+            lSqLiteDatabase.endTransaction();
+        }
+
+    }
+
     /**
      * Sets the favourite status of the song
      *
@@ -110,7 +127,7 @@ public class SongDetailTable {
      */
     public void setFavouriteStatus(String pSongId, int pFavStatus) {
 
-        Log.d(TAG, "setFavouriteStatus: ======"+pSongId +" "+pFavStatus);
+        Log.d(TAG, "setFavouriteStatus: ======" + pSongId + " " + pFavStatus);
         SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();
 
         ContentValues lValues = new ContentValues();

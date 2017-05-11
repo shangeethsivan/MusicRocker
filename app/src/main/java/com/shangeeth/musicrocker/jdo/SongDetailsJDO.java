@@ -1,5 +1,7 @@
 package com.shangeeth.musicrocker.jdo;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
@@ -8,7 +10,7 @@ import java.io.Serializable;
 
 public class SongDetailsJDO implements Serializable {
 
-    public SongDetailsJDO(String title, String albumName, String albumId, String songId, int duration,int favStatus) {
+    public SongDetailsJDO(String title, String albumName, String albumId, String songId, int duration, int favStatus) {
         this.title = title;
         this.albumName = albumName;
         this.albumId = albumId;
@@ -53,10 +55,11 @@ public class SongDetailsJDO implements Serializable {
 
     @Override
     public String toString() {
-        return getTitle() + " " + getAlbumId() + " " + getAlbumName() + " " + getSongId()+" "+ getFavouriteStatus();
+        return getTitle() + " " + getAlbumId() + " " + getAlbumName() + " " + getSongId() + " " + getFavouriteStatus();
     }
 
     public void setFavouriteStatus(int favouriteStatus) {
         this.favouriteStatus = favouriteStatus;
     }
+
 }

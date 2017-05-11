@@ -76,6 +76,15 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
             return 0;
     }
 
+    /**
+     * Called when data is being updated in DB
+     */
+    public void favChanged(int pPosition, int pFavStatus) {
+        mSongDetailsJDOs.get(pPosition).setFavouriteStatus(pFavStatus);
+        notifyItemChanged(pPosition);
+    }
+
+
     class MyViewHolder extends RecyclerView.ViewHolder {
 
         ImageView albumImageIV;
@@ -100,4 +109,9 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     public List<SongDetailsJDO> getData() {
         return mSongDetailsJDOs;
     }
+
+    public SongDetailsJDO getItemAtPosition(int pPosition) {
+        return mSongDetailsJDOs.get(pPosition);
+    }
+
 }

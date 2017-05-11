@@ -8,13 +8,27 @@
     android:orientation="vertical"
     tools:context="com.shangeeth.musicrocker.ui.PlayerActivity">
 
-    <ImageView
-        android:id="@+id/album_iv"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:src="@drawable/placeholder" />
+        android:layout_marginTop="20dp">
+
+        <ImageView
+            android:id="@+id/album_iv"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:src="@drawable/placeholder" />
+
+        <ImageView
+            android:id="@+id/album_iv_2"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:src="@drawable/placeholder" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/title_tv"
@@ -24,7 +38,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:lines="1"
-        android:textSize="20sp"
+        android:textSize="18sp"
         tools:text="Hey Mama" />
 
     <TextView
@@ -40,9 +54,9 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp">
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginTop="20dp">
 
         <ImageView
             android:id="@+id/loop_iv"
@@ -65,15 +79,15 @@
         android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
         android:layout_marginTop="10dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp">
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp">
 
         <TextView
             android:id="@+id/start_time_tv"

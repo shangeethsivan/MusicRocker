@@ -23,6 +23,7 @@ import com.shangeeth.musicrocker.ui.SongsListActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -62,7 +63,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setOnErrorListener(this);
 
-        mSongDetailsJDOs = new ArrayList<>();
         mSongDetailsJDOs = new SongDetailTable(this).getAllSongs();
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());

@@ -375,7 +375,7 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void loadImage() {
-        if (mCurrentAlbumId != null) {
+        if (mCurrentAlbumId != null || !mCurrentAlbumId.equals("")) {
             Uri lAlbumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mCurrentAlbumId));
             Picasso.with(PlayerActivity.this).load(lAlbumArtUri).centerCrop().resize(800, 800).placeholder(R.drawable.placeholder).into(mAlbumIv);
         } else {

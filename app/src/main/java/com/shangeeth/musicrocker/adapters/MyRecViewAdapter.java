@@ -44,10 +44,12 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     public void onBindViewHolder(MyViewHolder holder, int position) {
 
         Uri lUri = null;
-        if (mSongDetailsJDOs.get(position).getAlbumId() != null)
+        if (mSongDetailsJDOs.get(position).getAlbumId() != null || !mSongDetailsJDOs.get(position).getAlbumId().equals("")) {
             lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
-
-        Picasso.with(mContext).load(lUri).resize(100, 100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+            Picasso.with(mContext).load(lUri).resize(100, 100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
+        }
+        else
+            holder.albumImageIV.setImageResource(R.drawable.placeholder);
 
         String lTrackName = mSongDetailsJDOs.get(position).getTitle();
         if (lTrackName != null)

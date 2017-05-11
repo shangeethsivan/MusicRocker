@@ -9,6 +9,8 @@ import android.util.Log;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Shangeeth Sivan on 07/05/17.
@@ -101,7 +103,6 @@ public class SongDetailTable {
         }
         return lSongDetailsJDOs;
     }
-
 
     public void removeSongsForIds(ArrayList<String> pSongIds) {
 

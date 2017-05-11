@@ -206,6 +206,9 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
 
         }
+        else{
+            startTimer();
+        }
     }
 
 

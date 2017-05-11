@@ -87,12 +87,12 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
 
             loadDataToRecyclerView();
 
-            getLoaderManager().initLoader(LOADER_ID, null, this);
+//            getLoaderManager().initLoader(LOADER_ID, null, this);
 
         } else {
 
             loadDataToRecyclerView();
-            getLoaderManager().initLoader(LOADER_ID, null, this);
+//            getLoaderManager().initLoader(LOADER_ID, null, this);
 
 
             if (lSharedPreferences.getBoolean(getString(R.string.is_song_playing), false)) {
@@ -102,7 +102,6 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
 
                 startActivityForResult(new Intent(SongsListActivity.this, PlayerActivity.class)
                         .putExtra(getString(R.string.song_jdo), lJDO), REQUEST_CODE);
-                overridePendingTransition(R.anim.from_right, R.anim.scale_down);
             }
 
         }

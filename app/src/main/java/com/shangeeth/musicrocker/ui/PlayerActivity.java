@@ -52,7 +52,6 @@ public class PlayerActivity extends AppCompatActivity {
     private static final String TAG = "PlayerActivity";
     public static final String RECEIVER_FILTER = "com.shangeeth.musicrocker.ui.PlayerReceiver";
 
-    private int mCurrentSongPositionInList = 0;
     private BroadcastReceiver mBroadcastReceiver;
     private Intent mIntent;
 
@@ -295,7 +294,7 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                Log.d(TAG, "onReceive: " + intent.getBooleanExtra(getString(R.string.is_new_song), false));
+                Log.d(TAG, "onReceive: ");
 
                 if (intent.getIntExtra(getString(R.string.current_position_for_seek), -1) != -1) {
                     int lTimeInMs = intent.getIntExtra(getString(R.string.current_position_for_seek), -1);

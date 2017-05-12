@@ -45,13 +45,25 @@
     </LinearLayout>
 
     <ImageView
+        android:id="@+id/eq_iv"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center"
+        android:layout_marginRight="10dp"
+        android:layout_weight="1"
+        android:background="@drawable/equilizer"
+        android:visibility="invisible"
+        android:onClick="onFavClick"
+        android:tag="fav" />
+
+    <ImageView
         android:id="@+id/fav_iv"
         android:layout_width="0dp"
         android:layout_height="20dp"
         android:layout_gravity="center"
-        android:tag="fav"
         android:layout_marginRight="10dp"
         android:layout_weight="1"
         android:onClick="onFavClick"
-        android:src="@drawable/fav_u" />
+        android:src="@drawable/fav_u"
+        android:tag="fav" />
 </LinearLayout>

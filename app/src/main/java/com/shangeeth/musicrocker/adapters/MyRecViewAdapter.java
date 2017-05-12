@@ -2,9 +2,9 @@ package com.shangeeth.musicrocker.adapters;
 
 import android.content.ContentUris;
 import android.content.Context;
+import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,8 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     LayoutInflater mLayoutInflater;
     Context mContext;
     private static final String TAG = "MyRecViewAdapter";
+    private boolean mIsSongPlaying = false;
+    private String mCurrentSongId = "-1";
 
     public MyRecViewAdapter(Context context, ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
         mContext = context;
@@ -47,8 +49,7 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         if (mSongDetailsJDOs.get(position).getAlbumId() != null || !mSongDetailsJDOs.get(position).getAlbumId().equals("")) {
             lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
             Picasso.with(mContext).load(lUri).resize(100, 100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
-        }
-        else
+        } else
             holder.albumImageIV.setImageResource(R.drawable.placeholder);
 
         String lTrackName = mSongDetailsJDOs.get(position).getTitle();
@@ -68,6 +69,14 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         else
             holder.favouriteIV.setImageResource(R.drawable.fav_u);
 
+        // TODO: @holder.animationDrawable use it change Visibility and start
+        if (mIsSongPlaying && mSongDetailsJDOs.get(position).getSongId().equals(mCurrentSongId)) {
+            holder.eqIv.setVisibility(View.VISIBLE);
+            holder.animationDrawable.start();
+        } else {
+            holder.eqIv.setVisibility(View.INVISIBLE);
+            holder.animationDrawable.stop();
+        }
     }
 
     @Override
@@ -93,6 +102,8 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         TextView trackNameTV;
         TextView albumAndArtistDetailsTV;
         ImageView favouriteIV;
+        ImageView eqIv;
+        AnimationDrawable animationDrawable;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -100,6 +111,8 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
             trackNameTV = (TextView) itemView.findViewById(R.id.title_name_tv);
             albumAndArtistDetailsTV = (TextView) itemView.findViewById(R.id.artist_author_name_tv);
             favouriteIV = (ImageView) itemView.findViewById(R.id.fav_iv);
+            eqIv = (ImageView) itemView.findViewById(R.id.eq_iv);
+            animationDrawable = (AnimationDrawable) eqIv.getBackground();
         }
     }
 
@@ -108,12 +121,18 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         notifyDataSetChanged();
     }
 
+
     public List<SongDetailsJDO> getData() {
         return mSongDetailsJDOs;
     }
 
     public SongDetailsJDO getItemAtPosition(int pPosition) {
         return mSongDetailsJDOs.get(pPosition);
+    }
+
+    public void updateSongPlayStatus(boolean pStatus, String lSongId) {
+        mIsSongPlaying = pStatus;
+        mCurrentSongId = lSongId;
     }
 
 }

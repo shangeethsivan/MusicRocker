@@ -46,6 +46,8 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
     private static final int LOADER_ID = 101;
 
     private static final String TAG = "SongsListActivity";
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mPrefEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,9 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         mNoSongTV = (TextView) findViewById(R.id.no_song_tv);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(SongsListActivity.this));
         mSongDetailsJDOs = new ArrayList<>();
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mPrefEditor = mSharedPreferences.edit();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
@@ -71,13 +76,11 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
      */
     private void loadData() {
 
-        SharedPreferences lSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean lIsAppLoadingFirstTime = lSharedPreferences.getBoolean(getString(R.string.is_app_loading_first_time), true);
+        boolean lIsAppLoadingFirstTime = mSharedPreferences.getBoolean(getString(R.string.is_app_loading_first_time), true);
 
         if (lIsAppLoadingFirstTime) {
-            SharedPreferences.Editor lEditor = lSharedPreferences.edit();
-            lEditor.putBoolean(getString(R.string.is_app_loading_first_time), false);
-            lEditor.apply();
+            mPrefEditor.putBoolean(getString(R.string.is_app_loading_first_time), false);
+            mPrefEditor.apply();
 
             //Load data into Database
             DBInsertOrUpdateHelper lHelper = new DBInsertOrUpdateHelper();
@@ -95,17 +98,33 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
 //            getLoaderManager().initLoader(LOADER_ID, null, this);
 
 
-            if (lSharedPreferences.getBoolean(getString(R.string.is_song_playing), false)) {
+            if (isSongPlaying()) {
 
-
-                SongDetailsJDO lJDO = getSongJDO(lSharedPreferences.getString(getString(R.string.song_id), ""));
+                SongDetailsJDO lJDO = getSongJDO(mSharedPreferences.getString(getString(R.string.song_id), ""));
 
                 startActivityForResult(new Intent(SongsListActivity.this, PlayerActivity.class)
                         .putExtra(getString(R.string.song_jdo), lJDO), REQUEST_CODE);
             }
 
         }
+        updateSongPlay();
 
+
+    }
+
+    public void updateSongPlay() {
+
+        if (isSongPlaying()) {
+            mAdapter.updateSongPlayStatus(true,mSharedPreferences.getString(getString(R.string.song_id), ""));
+            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.updateSongPlayStatus(false,"-1");
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public boolean isSongPlaying() {
+        return mSharedPreferences.getBoolean(getString(R.string.is_song_playing), false);
     }
 
 
@@ -120,10 +139,6 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
             if (lGranted)
                 loadData();
         }
-    }
-
-    public void handleFavClick() {
-
     }
 
     /**
@@ -151,6 +166,7 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
                 }
             }
         }
+        updateSongPlay();
     }
 
     @Override
@@ -232,6 +248,11 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
 
     }
 
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
     private void compareDataAndMakeChangesToDB(ArrayList<SongDetailsJDO> pSongDetailsNew) {
 
         Log.d(TAG, "compareDataAndMakeChangesToDB: Called ============");
@@ -268,11 +289,6 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
 
     }
 
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
 
     public void onFavClick(View pView) {
         int lPosition = mRecyclerView.getChildLayoutPosition((View) pView.getParent());
@@ -311,4 +327,12 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         }
         return lJDO;
     }
+
+
+    @Override
+    protected void onResume() {
+        updateSongPlay();
+        super.onResume();
+    }
+
 }

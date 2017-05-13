@@ -11,7 +11,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.SongsListActivity">
+            android:name=".ui.SongsListActivity"
+            android:screenOrientation="portrait">
 
 
             <intent-filter>
@@ -21,7 +22,10 @@
 
         </activity>
 
-        <activity android:name=".ui.PlayerActivity"></activity>
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:parentActivityName=".ui.SongsListActivity"
+            android:screenOrientation="portrait" />
 
         <service android:name=".services.SongPlayerService" />
     </application>

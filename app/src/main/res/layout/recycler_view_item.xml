@@ -52,9 +52,9 @@
         android:layout_marginRight="10dp"
         android:layout_weight="1"
         android:background="@drawable/equilizer"
-        android:visibility="invisible"
         android:onClick="onFavClick"
-        android:tag="fav" />
+        android:tag="fav"
+        android:visibility="invisible" />
 
     <ImageView
         android:id="@+id/fav_iv"

@@ -127,6 +127,33 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        unbindService(mServiceConnection);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_CODE, new Intent().putExtra(getString(R.string.is_data_changed), mDataChanged));
+        finish();
+        overridePendingTransition(R.anim.scale_up, R.anim.to_right);
+    }
+
+    /**
+     * Setting on Click listeners
+     */
     private void setOnClickListeners() {
 
         mPlayOrPauseIv.setOnClickListener(new View.OnClickListener() {
@@ -240,14 +267,17 @@ public class PlayerActivity extends AppCompatActivity {
                 else
                     mFavouriteStatus = 0;
                 setFavImage();
-                updateFavDataInDb();
+                SongDetailTable lSongDetailTable = new SongDetailTable(PlayerActivity.this);
+                lSongDetailTable.setFavouriteStatus(mCurrentSongId, mFavouriteStatus);
+                mSongPlayerService.updateFavInJDO(mFavouriteStatus);
             }
         });
 
         mLoopIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCurrentLoopState = (mCurrentLoopState >= SongPlayerService.LOOP_STATE_SELF_R ? -1 : mCurrentLoopState) + 1;
+                mCurrentLoopState = (mCurrentLoopState >= 2 ? -1 : mCurrentLoopState) + 1;
+                Log.d(TAG, "onClick: " + mCurrentLoopState);
                 mSongPlayerService.setLoopState(mCurrentLoopState);
                 mLoopIv.setImageResource(mLoopImages[mCurrentLoopState]);
             }
@@ -305,9 +335,7 @@ public class PlayerActivity extends AppCompatActivity {
                 if (intent.getBooleanExtra(getString(R.string.is_new_song), false)) {
 
                     mCurrentSongJDO = (SongDetailsJDO) intent.getSerializableExtra(getString(R.string.current_song_details));
-
                     loadSongDetails();
-
                     mIsSongPlaying = intent.getBooleanExtra(getString(R.string.is_song_playing), false);
                     setPlayOrPauseImage();
                     //TODO: Set Current loop state here
@@ -324,14 +352,13 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         };
-
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(RECEIVER_FILTER));
-
     }
 
+    /**
+     * Load song Details in the view
+     */
     private void loadSongDetails() {
-
-        mTitleTv.setText(mCurrentSongJDO.getTitle());
 
         if (mCurrentSongJDO.getAlbumName() != null)
             mAlbumNameTv.setText(mCurrentSongJDO.getAlbumName());
@@ -351,38 +378,40 @@ public class PlayerActivity extends AppCompatActivity {
                 mAlbumIv.setImageResource(R.drawable.placeholder);
 
         } else {
-
             if (mCurrentSongJDO.getAlbumId() != null) {
                 mCurrentAlbumId = mCurrentSongJDO.getAlbumId();
                 Uri lAlbumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mCurrentSongJDO.getAlbumId()));
                 Picasso.with(PlayerActivity.this).load(lAlbumArtUri).centerCrop().resize(800, 800).placeholder(R.drawable.placeholder).into(mAlbumIv2);
-
             } else {
                 mAlbumIv2.setImageResource(R.drawable.placeholder);
                 mCurrentAlbumId = null;
             }
 
         }
+        mTitleTv.setText(mCurrentSongJDO.getTitle());
         mSeekBar.setMax(mCurrentSongJDO.getDuration());
         mEndTimeTv.setText(ConverterUtil.convertToString(mCurrentSongJDO.getDuration()));
-
-        mCurrentSongId = mCurrentSongJDO.getSongId();
         mFavouriteStatus = mCurrentSongJDO.getFavouriteStatus();
-        Log.d(TAG, "onReceive: " + mFavouriteStatus + "===== " + mCurrentSongId);
+        mCurrentSongId = mCurrentSongJDO.getSongId();
         setFavImage();
 
     }
 
+    /**
+     * Loads the image for after the animation ends
+     */
     public void loadImage() {
-        if (mCurrentAlbumId != null || !mCurrentAlbumId.equals("")) {
+        if (mCurrentAlbumId != null && !mCurrentAlbumId.equals("")) {
             Uri lAlbumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mCurrentAlbumId));
             Picasso.with(PlayerActivity.this).load(lAlbumArtUri).centerCrop().resize(800, 800).placeholder(R.drawable.placeholder).into(mAlbumIv);
         } else {
             mAlbumIv.setImageResource(R.drawable.placeholder);
         }
-
     }
 
+    /**
+     * Sets the play or pause image based on the status
+     */
     private void setPlayOrPauseImage() {
         if (mIsSongPlaying)
             mPlayOrPauseIv.setImageResource(R.drawable.ic_pause_black_24dp);
@@ -390,6 +419,9 @@ public class PlayerActivity extends AppCompatActivity {
             mPlayOrPauseIv.setImageResource(R.drawable.ic_play);
     }
 
+    /**
+     * Set Favourite Image
+     */
     private void setFavImage() {
         if (mFavouriteStatus == 1)
             mFavIv.setImageResource(R.drawable.fav);
@@ -397,33 +429,4 @@ public class PlayerActivity extends AppCompatActivity {
             mFavIv.setImageResource(R.drawable.fav_u);
     }
 
-    private void updateFavDataInDb() {
-        SongDetailTable lSongDetailTable = new SongDetailTable(this);
-        lSongDetailTable.setFavouriteStatus(mCurrentSongId, mFavouriteStatus);
-        mSongPlayerService.updateFavInJDO(mFavouriteStatus);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-        unbindService(mServiceConnection);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                break;
-        }
-        return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        setResult(RESULT_CODE, new Intent().putExtra(getString(R.string.is_data_changed), mDataChanged));
-        finish();
-        overridePendingTransition(R.anim.scale_up, R.anim.to_right);
-    }
 }

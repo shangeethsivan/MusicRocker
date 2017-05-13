@@ -44,7 +44,10 @@ public class SongDetailTable {
         this.mContext = mContext;
     }
 
-
+    /**
+     * Runs the Create table sql query
+     * @param pDb
+     */
     public static void createTable(SQLiteDatabase pDb) {
         pDb.execSQL(SQL_CREATE_ENTRIES);
     }
@@ -104,6 +107,10 @@ public class SongDetailTable {
         return lSongDetailsJDOs;
     }
 
+    /**
+     * Removes the songs for the specified ID's
+     * @param pSongIds
+     */
     public void removeSongsForIds(ArrayList<String> pSongIds) {
 
         SQLiteDatabase lSqLiteDatabase = new SongDetailDB(mContext).getWritableDatabase();

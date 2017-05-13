@@ -1,7 +1,5 @@
 package com.shangeeth.musicrocker.jdo;
 
-import android.support.annotation.NonNull;
-
 import java.io.Serializable;
 
 /**
@@ -10,47 +8,47 @@ import java.io.Serializable;
 
 public class SongDetailsJDO implements Serializable {
 
+    private String Title;
+    private String AlbumName;
+    private String AlbumId;
+    private String SongId;
+    private int Duration;
+    private int FavouriteStatus;
+
     public SongDetailsJDO(String title, String albumName, String albumId, String songId, int duration, int favStatus) {
-        this.title = title;
-        this.albumName = albumName;
-        this.albumId = albumId;
-        this.songId = songId;
-        this.duration = duration;
-        this.favouriteStatus = favStatus;
+        this.Title = title;
+        this.AlbumName = albumName;
+        this.AlbumId = albumId;
+        this.SongId = songId;
+        this.Duration = duration;
+        this.FavouriteStatus = favStatus;
     }
 
-    private String title;
-    private String albumName;
-    private String albumId;
-    private String songId;
-    private int duration;
-    private int favouriteStatus;
-
     public int getDuration() {
-        return duration;
+        return Duration;
     }
 
     public String getTitle() {
-        return title;
+        return Title;
     }
 
 
     public String getAlbumName() {
-        return albumName;
+        return AlbumName;
     }
 
 
     public String getAlbumId() {
-        return albumId;
+        return AlbumId;
     }
 
 
     public String getSongId() {
-        return songId;
+        return SongId;
     }
 
     public int getFavouriteStatus() {
-        return favouriteStatus;
+        return FavouriteStatus;
     }
 
     @Override
@@ -59,7 +57,7 @@ public class SongDetailsJDO implements Serializable {
     }
 
     public void setFavouriteStatus(int favouriteStatus) {
-        this.favouriteStatus = favouriteStatus;
+        this.FavouriteStatus = favouriteStatus;
     }
 
 }

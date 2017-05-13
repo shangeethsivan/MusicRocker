@@ -19,16 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyViewHolder> {
+public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyViewHolder> {
 
     ArrayList<SongDetailsJDO> mSongDetailsJDOs;
     LayoutInflater mLayoutInflater;
     Context mContext;
-    private static final String TAG = "MyRecViewAdapter";
+    private static final String TAG = "SongListAdapter";
     private boolean mIsSongPlaying = false;
     private String mCurrentSongId = "-1";
 
-    public MyRecViewAdapter(Context context, ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
+    public SongListAdapter(Context context, ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
         mContext = context;
         mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mSongDetailsJDOs = pSongDetailsJDOs;
@@ -46,7 +46,7 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     public void onBindViewHolder(MyViewHolder holder, int position) {
 
         Uri lUri = null;
-        if (mSongDetailsJDOs.get(position).getAlbumId() != null || !mSongDetailsJDOs.get(position).getAlbumId().equals("")) {
+        if (mSongDetailsJDOs.get(position).getAlbumId() != null && !mSongDetailsJDOs.get(position).getAlbumId().equals("")) {
             lUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), Long.parseLong(mSongDetailsJDOs.get(position).getAlbumId()));
             Picasso.with(mContext).load(lUri).resize(100, 100).placeholder(R.drawable.placeholder).into(holder.albumImageIV);
         } else
@@ -69,13 +69,14 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         else
             holder.favouriteIV.setImageResource(R.drawable.fav_u);
 
-        // TODO: @holder.animationDrawable use it change Visibility and start
+        // TODO: @holder.animationDrawable use it change Visibility and start (Animation)
         if (mIsSongPlaying && mSongDetailsJDOs.get(position).getSongId().equals(mCurrentSongId)) {
             holder.eqIv.setVisibility(View.VISIBLE);
+            holder.animationDrawable = (AnimationDrawable) holder.eqIv.getBackground();
             holder.animationDrawable.start();
+
         } else {
             holder.eqIv.setVisibility(View.INVISIBLE);
-            holder.animationDrawable.stop();
         }
     }
 
@@ -96,6 +97,9 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
     }
 
 
+    /**
+     * View Holder class for Rec view
+     */
     class MyViewHolder extends RecyclerView.ViewHolder {
 
         ImageView albumImageIV;
@@ -105,34 +109,54 @@ public class MyRecViewAdapter extends RecyclerView.Adapter<MyRecViewAdapter.MyVi
         ImageView eqIv;
         AnimationDrawable animationDrawable;
 
-        public MyViewHolder(View itemView) {
+        MyViewHolder(View itemView) {
             super(itemView);
             albumImageIV = (ImageView) itemView.findViewById(R.id.album_artwork_iv);
             trackNameTV = (TextView) itemView.findViewById(R.id.title_name_tv);
             albumAndArtistDetailsTV = (TextView) itemView.findViewById(R.id.artist_author_name_tv);
             favouriteIV = (ImageView) itemView.findViewById(R.id.fav_iv);
             eqIv = (ImageView) itemView.findViewById(R.id.eq_iv);
-            animationDrawable = (AnimationDrawable) eqIv.getBackground();
         }
     }
 
+    /**
+     * Swap the data with the new JDO list
+     *
+     * @param pSongDetailsJDOs
+     */
     public void swapData(ArrayList<SongDetailsJDO> pSongDetailsJDOs) {
         mSongDetailsJDOs = pSongDetailsJDOs;
         notifyDataSetChanged();
     }
 
 
+    /**
+     * Returns the list of currently loaded JDO's
+     * @return
+     */
     public List<SongDetailsJDO> getData() {
         return mSongDetailsJDOs;
     }
 
+    /**
+     * Gets the @{@link SongDetailsJDO} object at the specified position
+     * @param pPosition
+     * @return the {@link SongDetailsJDO} object
+     */
     public SongDetailsJDO getItemAtPosition(int pPosition) {
         return mSongDetailsJDOs.get(pPosition);
     }
 
+    /**
+     * Update Song Play status
+     * @param pStatus the status weather is playing or not
+     * @param lSongId the song id the playing song
+     */
     public void updateSongPlayStatus(boolean pStatus, String lSongId) {
         mIsSongPlaying = pStatus;
         mCurrentSongId = lSongId;
+        notifyDataSetChanged();
     }
+
 
 }

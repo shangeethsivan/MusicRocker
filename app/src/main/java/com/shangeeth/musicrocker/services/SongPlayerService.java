@@ -86,7 +86,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     @Override
     public IBinder onBind(Intent intent) {
-        if(!mIsTimerRunning)
+        if (!mIsTimerRunning)
             startTimer();
         return mIBinder;
     }
@@ -102,7 +102,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     @Override
     public void onRebind(Intent intent) {
-        if(!mIsTimerRunning)
+        if (!mIsTimerRunning)
             startTimer();
         Log.e(TAG, "onRebind: ");
     }
@@ -111,7 +111,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     public void onTaskRemoved(Intent rootIntent) {
 
         Log.d(TAG, "onTaskRemoved: ");
-        if(!mMediaPlayer.isPlaying())
+        if (!mMediaPlayer.isPlaying())
             removeSharedPrefs();
 
         stopServiceIfMusicPlayerNotPlaying();
@@ -135,6 +135,12 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     }
 
 
+    /**
+     * Loads the song and calls the @playSong method
+     *
+     * @param pSongId       the song ID
+     * @param pSongDuration the song start duration if needed
+     */
     public void loadSong(String pSongId, int pSongDuration) {
         Log.d(TAG, "loadSong: ");
         int lPosition = 0;
@@ -149,7 +155,10 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     }
 
-    public void addNotification(){
+    /**
+     * Adds the notification for running in background using startForeground method
+     */
+    public void addNotification() {
             /*
                 Calling start foreground method to keep the song play active in background
              */
@@ -163,10 +172,13 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
         startForeground(NOTIF_ID, lBuilder);
     }
-    public void removeNotification(){
-        stopForeground(true);
-    }
 
+    /**
+     * Start to play the song
+     *
+     * @param pPosition
+     * @param pDuration
+     */
     public void playSong(int pPosition, int pDuration) {
 
         stopTimer();
@@ -174,10 +186,9 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         if (mCurrentSongPosition != pPosition || mCurrentSongPosition == pPosition && !mMediaPlayer.isPlaying()) {
 
             mMediaPlayer.reset();
-
-
             Log.d(TAG, "playSong: positions ===== " + mCurrentSongPosition + " " + pPosition);
             mCurrentSongPosition = pPosition;
+
             try {
                 Uri lUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(mSongDetailsJDOs.get(mCurrentSongPosition).getSongId()));
                 mMediaPlayer.setDataSource(getApplicationContext(), lUri);
@@ -192,27 +203,25 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             mMediaPlayer.start();
             mMediaPlayer.seekTo(mCurrentSeekDuration);
 //            Log.d(TAG, "playSong: ===" + mCurrentSongPosition + " " + pDuration + " " + mMediaPlayer.getDuration());
-
             //Setting current seek duration to seek after preparation
             mCurrentSeekDuration = pDuration;
-
             addNotification();
-
             addSharedPreference();
-
             startTimer();
 
             //Send Broadcast containing the cong updated song details
             songUpdated(mSongDetailsJDOs.get(mCurrentSongPosition), true);
 
-        }
-        else{
-            startTimer();
+        } else {
+            if(!mIsTimerRunning)
+                startTimer();
         }
     }
 
-
-    public void addSharedPreference(){
+    /**
+     *
+     */
+    public void addSharedPreference() {
         /*
         Setting the shared preference for keeping track of weather the song is playing
         */
@@ -236,7 +245,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
             playSong(mCurrentSongPosition, 0);
         } else if (mLoopState == LOOP_STATE_ALL_R) {
             playNextSong();
-        } else if (mLoopState == LOOP_STATE_NO_R && mCurrentSongPosition + 1 <= mSongDetailsJDOs.size()) {
+        } else if (mLoopState == LOOP_STATE_NO_R && mCurrentSongPosition + 1 < mSongDetailsJDOs.size()) {
             playNextSong();
         }
     }
@@ -253,6 +262,9 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         }
     }
 
+    /**
+     *
+     */
     public void playPreviousSong() {
         if (mCurrentSongPosition - 1 >= 0) {
             Log.d(TAG, "playPreviousSong: playSong: ===called");
@@ -262,12 +274,15 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
         }
     }
 
+    /**
+     * Play or pause song is handled here
+     */
     public void playOrPauseSong() {
 
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             stopTimer();
-            removeNotification();
+            stopForeground(true);
             removeSharedPrefs();
         } else {
             mMediaPlayer.start();
@@ -278,6 +293,11 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     }
 
+    /**
+     * Seeks the song in media player - called from activity
+     *
+     * @param position
+     */
     public void seekSong(int position) {
         mMediaPlayer.seekTo(position);
     }
@@ -313,7 +333,6 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
                 if (mMediaPlayer != null) {
                     try {
                         int lCurrentDuration = mMediaPlayer.getCurrentPosition();
-
                         //Current position for seek bar
                         //TODO: Broadcast the data using localBroadcast Manager
                         LocalBroadcastManager.
@@ -325,37 +344,51 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
                     }
                 }
             }
-        }, 500, 500);
+        }, 0, 500);
     }
 
 
-
+    /**
+     * Stop the currently running timer
+     */
     public void stopTimer() {
         mIsTimerRunning = false;
         Log.d(TAG, "stopTimer: ");
         if (mTimer != null) {
-            mTimer.purge();
+//            mTimer.purge();
             mTimer.cancel();
         }
     }
+
+    /**
+     * Update the favourite status in our JDO
+     *
+     * @param pFavStatus the fav status
+     */
     public void updateFavInJDO(int pFavStatus) {
         mSongDetailsJDOs.get(mCurrentSongPosition).setFavouriteStatus(pFavStatus);
     }
 
+    /**
+     * Setting the loop state
+     *
+     * @param pLoopState
+     */
     public void setLoopState(int pLoopState) {
         mLoopState = pLoopState;
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        Log.d(TAG, "onCompletion: =====" + mCurrentSongPosition);
 
+        Log.d(TAG, "onCompletion: =====" + mCurrentSongPosition);
         //TODO: Loop functionality
         chooseNextSong(false);
 
         if (!mMediaPlayer.isPlaying()) {
             Log.d(TAG, "onCompletion: =====" + mLoopState);
             removeSharedPrefs();
+            stopForeground(true);
             LocalBroadcastManager.getInstance(getApplicationContext())
                     .sendBroadcast(new Intent(PlayerActivity.RECEIVER_FILTER)
                             .putExtra(getString(R.string.song_ended), true));
@@ -363,6 +396,9 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
 
     }
 
+    /**
+     * Removes all the shared preference set
+     */
     public void removeSharedPrefs() {
         Log.d(TAG, "removeSharedPrefs: Called");
         mSharedPrefEditor.remove(getString(R.string.is_song_playing));
@@ -379,7 +415,7 @@ public class SongPlayerService extends Service implements MediaPlayer.OnCompleti
     }
 
     /**
-     * Called when data is being updated in DB
+     * Called when data is being updated in DB called from @{@link SongsListActivity}
      */
     public void favChanged(int pPosition, int pFavStatus) {
         mSongDetailsJDOs.get(pPosition).setFavouriteStatus(pFavStatus);

@@ -6,17 +6,19 @@
     android:animateLayoutChanges="true"
     android:background="@color/white"
     android:orientation="vertical"
+    android:weightSum="10"
     tools:context="com.shangeeth.musicrocker.ui.PlayerActivity">
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_marginTop="20dp">
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="4.5">
 
         <ImageView
             android:id="@+id/album_iv"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:scaleType="fitCenter"
             android:src="@drawable/placeholder" />
@@ -24,7 +26,7 @@
         <ImageView
             android:id="@+id/album_iv_2"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:src="@drawable/placeholder" />
 
@@ -33,10 +35,10 @@
     <TextView
         android:id="@+id/title_tv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="10dp"
+        android:layout_weight="0.5"
         android:ellipsize="end"
         android:gravity="center"
         android:lines="1"
@@ -46,9 +48,10 @@
     <TextView
         android:id="@+id/album_name_tv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
+        android:layout_weight="0.5"
         android:ellipsize="end"
         android:gravity="center"
         android:lines="1"
@@ -57,16 +60,16 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="25dp"
+        android:gravity="center"
         android:layout_marginRight="25dp"
-        android:layout_marginTop="20dp">
+        android:layout_weight="1">
 
         <ImageView
             android:id="@+id/loop_iv"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_gravity="center"
             android:src="@drawable/loop_all" />
 
         <ImageView
@@ -78,20 +81,28 @@
             android:src="@drawable/fav_u" />
 
     </RelativeLayout>
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    >
 
     <SeekBar
+        android:layout_gravity="center"
         android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="10dp" />
+        android:layout_marginRight="12dp" />
+
+</FrameLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp">
+        android:layout_marginRight="25dp"
+        android:layout_weight="0.5">
 
         <TextView
             android:id="@+id/start_time_tv"
@@ -111,10 +122,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_weight="2"
         android:gravity="center"
         android:orientation="horizontal">
 

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "795921838465",
+    "firebase_url": "https://musicrocker-92fb6.firebaseio.com",
+    "project_id": "musicrocker-92fb6",
+    "storage_bucket": "musicrocker-92fb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:795921838465:android:835dbaafe1905632",
+        "android_client_info": {
+          "package_name": "com.shangeeth.musicrocker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "795921838465-hvtfbsq9egq0cl6e57nua8dlc7jfq6ak.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shangeeth.musicrocker",
+            "certificate_hash": "a97839a0b200d9734a0bf6633424ad5c6cb90af6"
+          }
+        },
+        {
+          "client_id": "795921838465-csvfbj5j8i61la3ig0duea284md6s159.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxN5ZVoeUiM7dxAScuvxwAS95K2h7Jiz0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "795921838465-csvfbj5j8i61la3ig0duea284md6s159.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

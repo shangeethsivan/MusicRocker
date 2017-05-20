@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.db.SongDetailTable;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
@@ -79,6 +80,7 @@ public class PlayerActivity extends AppCompatActivity {
     private SongDetailsJDO mCurrentSongJDO;
 
     String mCurrentAlbumId = null;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
 
     @Override
@@ -103,8 +105,12 @@ public class PlayerActivity extends AppCompatActivity {
 
         mSeekBar = (SeekBar) findViewById(R.id.seek_bar);
 
+        //Firebase analytics
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
 
         setOnClickListeners();
+
         mSharedPreference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mSharedPrefEditor = mSharedPreference.edit();
         mSharedPrefEditor.apply();
@@ -191,6 +197,9 @@ public class PlayerActivity extends AppCompatActivity {
         mNextIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Bundle lBundle = new Bundle();
+                lBundle.putString(FirebaseAnalytics.Param.ITEM_CATEGORY,"Next");
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM,lBundle);
                 mSeekBar.setProgress(0);
                 mSongPlayerService.chooseNextSong(true);
 
@@ -222,6 +231,9 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick: =====");
+                Bundle lBundle = new Bundle();
+                lBundle.putString(FirebaseAnalytics.Param.ITEM_CATEGORY,"Previous");
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM,lBundle);
                 mSeekBar.setProgress(0);
                 mSongPlayerService.playPreviousSong();
                 mAlbumIv2.startAnimation(lAnimationPrevious);

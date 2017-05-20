@@ -28,6 +28,9 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.android.gms.measurement.AppMeasurement;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.adapters.SongListAdapter;
@@ -48,13 +51,11 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
     private static final int LOADER_ID = 101;
     private int REQUEST_CODE = 102;
 
-    int position = 0;
-
     private static final String TAG = "SongsListActivity";
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mPrefEditor;
     private SharedPreferences.OnSharedPreferenceChangeListener mOnSharedPreferenceChangeListener;
-
+    private FirebaseAnalytics mFirebaseAnalytics;
 
 
     @Override
@@ -72,6 +73,9 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
         mPrefEditor = mSharedPreferences.edit();
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
+        FirebaseApp.initializeApp(this);
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
         loadData();
 
     }
@@ -81,7 +85,6 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
      * Load data into DB if activity opened for first time else load data into recyclerView from DB
      */
     private void loadData() {
-//        FirebaseCrash.log("My First Firebase Crash Report LOG");
         FirebaseCrash.report(new Exception("OMG An Exception"));
         boolean lIsAppLoadingFirstTime = mSharedPreferences.getBoolean(getString(R.string.is_app_loading_first_time), true);
 
@@ -248,7 +251,8 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
             mAdapter.updateSongPlayStatus(true, mSharedPreferences.getString(getString(R.string.song_id), ""));
             mRecyclerView.smoothScrollToPosition(getPositionOfSongId(mSharedPreferences.getString(getString(R.string.song_id), "")));
         } else {
-            mAdapter.updateSongPlayStatus(false, "-1");
+            if(mAdapter!=null)
+                mAdapter.updateSongPlayStatus(false, "-1");
         }
     }
 
@@ -304,6 +308,12 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
      * @param pView
      */
     public void onFavClick(View pView) {
+
+        //Firebase Logging
+        Bundle lBundle = new Bundle();
+        lBundle.putString(FirebaseAnalytics.Param.ITEM_CATEGORY,"Favourite Clicked");
+        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM,lBundle);
+
         int lPosition = mRecyclerView.getChildLayoutPosition((View) pView.getParent());
 
         SongDetailsJDO lSongDetailsJDO = mAdapter.getItemAtPosition(lPosition);

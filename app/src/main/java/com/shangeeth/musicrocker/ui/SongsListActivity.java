@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -24,20 +23,17 @@ import android.support.v7.widget.RecyclerView;
 
 import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.google.firebase.crash.FirebaseCrash;
 import com.shangeeth.musicrocker.R;
 import com.shangeeth.musicrocker.adapters.SongListAdapter;
 import com.shangeeth.musicrocker.db.SongDetailTable;
 import com.shangeeth.musicrocker.helper.CommonHelper;
 import com.shangeeth.musicrocker.jdo.SongDetailsJDO;
-import com.shangeeth.musicrocker.listeners.MyRecyclerViewOnClickListener;
 import com.shangeeth.musicrocker.services.SongPlayerService;
 
 import java.util.ArrayList;
@@ -58,6 +54,8 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mPrefEditor;
     private SharedPreferences.OnSharedPreferenceChangeListener mOnSharedPreferenceChangeListener;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +81,8 @@ public class SongsListActivity extends AppCompatActivity implements LoaderManage
      * Load data into DB if activity opened for first time else load data into recyclerView from DB
      */
     private void loadData() {
-
+//        FirebaseCrash.log("My First Firebase Crash Report LOG");
+        FirebaseCrash.report(new Exception("OMG An Exception"));
         boolean lIsAppLoadingFirstTime = mSharedPreferences.getBoolean(getString(R.string.is_app_loading_first_time), true);
 
         if (lIsAppLoadingFirstTime) {
